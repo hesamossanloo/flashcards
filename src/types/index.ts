@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { z } from 'zod';
 
 // Using Zod for runtime type validation and schema definition
 export const CardSchema = z.object({
@@ -84,10 +84,21 @@ export type Flashcard = {
 export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList>;
   DeckDetail: { deckId: string };
-  StudySession: { deckId: string };
-  AddCard: { deckId: string; isFirstCard?: boolean };
-  EditCard: { deckId: string; cardId: string };
+  CardDetail: { deckId: string; cardId: string };
   CreateDeck: undefined;
+  EditDeck: { deckId: string };
+  Study: { deckId: string };
+  AddCard: { deckId: string; isFirstCard: boolean };
+  Stats: {
+    sessionId: string;
+    stats: {
+      totalCards: number;
+      correctCards: number;
+      accuracy: number;
+      totalTime: number;
+      averageTimePerCard: number;
+    };
+  };
 };
 
 export type MainTabParamList = {

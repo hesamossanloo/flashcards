@@ -143,3 +143,5 @@ yarn-error.log
 
 # TypeScript
 *.tsbuildinfo
+
+.history
