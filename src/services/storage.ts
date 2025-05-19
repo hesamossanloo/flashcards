@@ -242,19 +242,29 @@ export class StorageService {
 
   async saveSession(session: StudySession): Promise<void> {
     try {
+      debug('Saving session', {
+        id: session.id,
+        cardsReviewed: session.cardsReviewed.length,
+        correctCount: session.cardsReviewed.filter(r => r.result === 'correct').length,
+        incorrectCount: session.cardsReviewed.filter(r => r.result === 'incorrect').length,
+      });
       const sessions = await this.getAllSessions();
       const index = sessions.findIndex(s => s.id === session.id);
       
       if (index >= 0) {
         sessions[index] = session;
+        debug('Updated existing session at index', index);
       } else {
         sessions.push(session);
+        debug('Added new session');
       }
 
       const serialized = serializeDates(sessions);
       await AsyncStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(serialized));
       cache.set(STORAGE_KEYS.SESSIONS, sessions);
+      debug('Session saved successfully');
     } catch (error) {
+      debug('Failed to save session', error);
       throw new StorageError('Failed to save session', error as Error);
     }
   }

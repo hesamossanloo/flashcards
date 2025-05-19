@@ -37,6 +37,11 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~19.0.14",
+    "@typescript-eslint/eslint-plugin": "~8.32.1",
+    "@typescript-eslint/parser": "~8.32.1",
+    "eslint": "~9.27.0",
+    "eslint-plugin-react": "~7.37.5",
+    "eslint-plugin-react-hooks": "~5.2.0",
     "metro": "^0.82.3",
     "metro-babel-transformer": "^0.82.3",
     "metro-core": "^0.82.3",
