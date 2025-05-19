@@ -5,7 +5,14 @@ import {
   useRoute,
 } from "@react-navigation/native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SwipeableCard } from "../components/SwipeableCard";
 import { useTheme } from "../hooks/useTheme";
 import { StorageService } from "../services/storage";
@@ -44,6 +51,8 @@ const StudySessionScreen: React.FC = () => {
   // State
   const [cards, setCards] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  // Using ref to avoid closure issues in async operations
+  // The ref always holds the latest value, while state is used for rendering
   const currentIndexRef = useRef(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isProcessingSwipe, setIsProcessingSwipe] = useState(false);
@@ -116,21 +125,6 @@ const StudySessionScreen: React.FC = () => {
   // Handle card result
   const handleCardResult = useCallback(
     async (card: Card, result: StudyResult) => {
-      console.log("Processing card result:", {
-        cardId: card.id,
-        result,
-        currentIndex: currentIndexRef.current,
-        totalCards: cards.length,
-        currentReviewed: session.cardsReviewed.length,
-        sessionState: {
-          id: session.id,
-          reviewedCards: session.cardsReviewed.map((r) => ({
-            cardId: r.cardId,
-            result: r.result,
-          })),
-        },
-      });
-
       const now = new Date();
       const timeSpent = now.getTime() - session.startTime.getTime();
 
@@ -141,21 +135,44 @@ const StudySessionScreen: React.FC = () => {
         timeSpent,
       };
 
-      // Create new session state
-      const updatedSession = {
-        ...session,
-        cardsReviewed: [...session.cardsReviewed, newReviewedCard],
-        // Add end time if this is the last card
-        ...(currentIndexRef.current + 1 >= cards.length
-          ? { endTime: now }
-          : {}),
-      };
+      // Update session state using functional update
+      setSession((prevSession) => {
+        const updatedSession = {
+          ...prevSession,
+          cardsReviewed: [...prevSession.cardsReviewed, newReviewedCard],
+          // Add end time if this is the last card
+          ...(currentIndexRef.current + 1 >= cards.length
+            ? { endTime: now }
+            : {}),
+        };
+
+        console.log("Detailed session state:", {
+          sessionId: updatedSession.id,
+          totalCards: cards.length,
+          currentIndex: currentIndexRef.current,
+          cardsReviewed: updatedSession.cardsReviewed.map((r) => ({
+            cardId: r.cardId,
+            result: r.result,
+            timeSpent: r.timeSpent,
+          })),
+          correctCount: updatedSession.cardsReviewed.filter(
+            (r) => r.result === StudyResult.Correct
+          ).length,
+          incorrectCount: updatedSession.cardsReviewed.filter(
+            (r) => r.result === StudyResult.Incorrect
+          ).length,
+          isLastCard: currentIndexRef.current + 1 >= cards.length,
+        });
+
+        // Save session update
+        storage.saveSession(updatedSession).catch((error) => {
+          console.error("Failed to save session:", error);
+        });
+
+        return updatedSession;
+      });
 
       try {
-        // Save session update first
-        await storage.saveSession(updatedSession);
-        console.log("Session saved successfully");
-
         // Update card stats and next review date
         const updatedCard = {
           ...card,
@@ -188,39 +205,52 @@ const StudySessionScreen: React.FC = () => {
         await storage.saveCard(updatedCard);
         console.log("Card saved successfully");
 
-        // Update state
-        setSession(updatedSession);
-
         // Update the card in the cards array
         setCards((prevCards) =>
           prevCards.map((c) => (c.id === updatedCard.id ? updatedCard : c))
         );
 
         // Check if this was the last card
-        console.log("Current index:", currentIndexRef.current);
-        console.log("Cards length:", cards.length);
-        console.log(
-          "Current index is bigger than cards length:",
-          currentIndexRef.current >= cards.length
-        );
-
         if (currentIndexRef.current + 1 >= cards.length) {
-          console.log("Last card completed, navigating to stats");
+          console.log("Last card completed, calculating final stats");
+
+          // Get the latest session state for stats calculation
+          const latestSession = await storage
+            .getAllSessions()
+            .then((sessions) => sessions.find((s) => s.id === session.id));
+
+          if (!latestSession) {
+            console.error("Failed to find latest session state");
+            return;
+          }
+
+          const correctCount = latestSession.cardsReviewed.filter(
+            (review) => review.result === StudyResult.Correct
+          ).length;
+          const incorrectCount = latestSession.cardsReviewed.filter(
+            (review) => review.result === StudyResult.Incorrect
+          ).length;
+
+          console.log("Final stats calculation:", {
+            totalCards: cards.length,
+            correctCount,
+            incorrectCount,
+            accuracy: (correctCount / cards.length) * 100,
+            cardsReviewed: latestSession.cardsReviewed.map((r) => ({
+              cardId: r.cardId,
+              result: r.result,
+            })),
+          });
+
           const stats = {
             totalCards: cards.length,
-            correctCards: updatedSession.cardsReviewed.filter(
-              (review) => review.result === StudyResult.Correct
-            ).length,
-            accuracy:
-              (updatedSession.cardsReviewed.filter(
-                (review) => review.result === StudyResult.Correct
-              ).length /
-                cards.length) *
-              100,
+            correctCards: correctCount,
+            accuracy: (correctCount / cards.length) * 100,
             totalTime: now.getTime() - session.startTime.getTime(),
             averageTimePerCard:
               (now.getTime() - session.startTime.getTime()) / cards.length,
           };
+          console.log("Calculated stats:", stats);
 
           navigation.reset({
             index: 0,
@@ -239,7 +269,7 @@ const StudySessionScreen: React.FC = () => {
         console.error("Failed to save study progress:", error);
       }
     },
-    [session, storage, cards.length, navigation]
+    [session.id, session.startTime, storage, cards.length, navigation, deckId]
   );
 
   // Handle swipe actions
@@ -248,6 +278,7 @@ const StudySessionScreen: React.FC = () => {
       console.log("Swiped left on card:", {
         cardId: card.id,
         currentIndex,
+        result: StudyResult.Incorrect,
       });
       handleCardResult(card, StudyResult.Incorrect);
     },
@@ -259,6 +290,7 @@ const StudySessionScreen: React.FC = () => {
       console.log("Swiped right on card:", {
         cardId: card.id,
         currentIndex,
+        result: StudyResult.Correct,
       });
       handleCardResult(card, StudyResult.Correct);
     },
@@ -308,6 +340,32 @@ const StudySessionScreen: React.FC = () => {
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
+      {/* Exit button */}
+      <TouchableOpacity
+        style={[styles.exitButton, { backgroundColor: theme.colors.error }]}
+        onPress={() => {
+          Alert.alert(
+            "Exit Study Session",
+            "Are you sure you want to exit? Your progress will be saved.",
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+              {
+                text: "Exit",
+                style: "destructive",
+                onPress: () => {
+                  navigation.goBack();
+                },
+              },
+            ]
+          );
+        }}
+      >
+        <MaterialCommunityIcons name="close" size={24} color="white" />
+      </TouchableOpacity>
+
       {/* Progress indicator */}
       <View style={styles.progressContainer}>
         <Text style={[styles.progress, { color: theme.colors.text }]}>
@@ -365,6 +423,17 @@ const StudySessionScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  exitButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
   },
   progressContainer: {
     padding: 16,

@@ -108,8 +108,8 @@ export default function Navigation() {
           name="StudySession"
           component={StudySessionScreen}
           options={{
-            title: "Study Session",
-            headerBackTitle: "Study",
+            headerShown: false,
+            gestureEnabled: false,
           }}
         />
         <Stack.Screen
