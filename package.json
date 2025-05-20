@@ -24,6 +24,8 @@
     "expo": "~53.0.9",
     "expo-crypto": "~14.1.4",
     "expo-dev-client": "~5.1.8",
+    "expo-file-system": "~18.1.10",
+    "expo-sharing": "~13.1.5",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.2",

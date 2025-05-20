@@ -4,6 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import AddCardScreen from "../screens/AddCardScreen";
+import BackupScreen from "../screens/BackupScreen";
 import CreateDeckScreen from "../screens/CreateDeckScreen";
 import DeckDetailScreen from "../screens/DeckDetailScreen";
 import DecksScreen from "../screens/DecksScreen";
@@ -134,6 +135,14 @@ export default function Navigation() {
           options={{
             title: "Session Results",
             headerBackTitle: "Study",
+          }}
+        />
+        <Stack.Screen
+          name="Backup"
+          component={BackupScreen}
+          options={{
+            title: "Backup & Restore",
+            headerBackTitle: "Settings",
           }}
         />
       </Stack.Navigator>

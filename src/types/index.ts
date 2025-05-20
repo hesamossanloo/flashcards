@@ -99,6 +99,7 @@ export type RootStackParamList = {
       averageTimePerCard: number;
     };
   };
+  Backup: undefined;
 };
 
 export type MainTabParamList = {

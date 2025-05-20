@@ -35,6 +35,12 @@ importers:
       expo-dev-client:
         specifier: ~5.1.8
         version: 5.1.8(expo@53.0.9(@babel/core@7.27.1)(graphql@15.8.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))
+      expo-file-system:
+        specifier: ~18.1.10
+        version: 18.1.10(expo@53.0.9(@babel/core@7.27.1)(graphql@15.8.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))
+      expo-sharing:
+        specifier: ~13.1.5
+        version: 13.1.5(expo@53.0.9(@babel/core@7.27.1)(graphql@15.8.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))
       expo-status-bar:
         specifier: ~2.2.3
         version: 2.2.3(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -1868,6 +1874,11 @@ packages:
 
   expo-modules-core@2.3.13:
     resolution: {integrity: sha512-vmKHv7tEo2wUQoYDV6grhsLsQfD3DUnew5Up3yNnOE1gHGQE+zhV1SBYqaPMPB12OvpyD1mlfzGhu6r9PODnng==}
+
+  expo-sharing@13.1.5:
+    resolution: {integrity: sha512-X/5sAEiWXL2kdoGE3NO5KmbfcmaCWuWVZXHu8OQef7Yig4ZgHFkGD11HKJ5KqDrDg+SRZe4ISd6MxE7vGUgm4w==}
+    peerDependencies:
+      expo: '*'
 
   expo-status-bar@2.2.3:
     resolution: {integrity: sha512-+c8R3AESBoduunxTJ8353SqKAKpxL6DvcD8VKBuh81zzJyUUbfB4CVjr1GufSJEKsMzNPXZU+HJwXx7Xh7lx8Q==}
@@ -6291,6 +6302,10 @@ snapshots:
   expo-modules-core@2.3.13:
     dependencies:
       invariant: 2.2.4
+
+  expo-sharing@13.1.5(expo@53.0.9(@babel/core@7.27.1)(graphql@15.8.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)):
+    dependencies:
+      expo: 53.0.9(@babel/core@7.27.1)(graphql@15.8.0)(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
 
   expo-status-bar@2.2.3(react-native@0.79.2(@babel/core@7.27.1)(@react-native-community/cli@12.3.6)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:

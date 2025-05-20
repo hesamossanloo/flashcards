@@ -374,6 +374,86 @@ const StatsScreen: React.FC = () => {
     });
   };
 
+  const handleResetStats = async () => {
+    Alert.alert(
+      "Reset Stats",
+      "Are you sure you want to reset all stats? This will clear all study sessions and reset card levels.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Reset",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await storage.clearAllSessions();
+              await storage.resetAllCardLevels();
+              setIsLoading(true);
+              const [allCards, allSessions, allDecks] = await Promise.all([
+                storage.getAllCards(),
+                storage.getAllSessions(),
+                storage.getAllDecks(),
+              ]);
+              // Calculate overall stats
+              const masteredCards = allCards.filter(
+                (card) => card.level >= 5
+              ).length;
+              const learningCards = allCards.filter(
+                (card) => card.level > 0 && card.level < 5
+              ).length;
+              const totalCorrect = allSessions.reduce(
+                (sum, session) =>
+                  sum +
+                  session.cardsReviewed.filter(
+                    (review) => review.result === "correct"
+                  ).length,
+                0
+              );
+              const totalReviewed = allSessions.reduce(
+                (sum, session) => sum + session.cardsReviewed.length,
+                0
+              );
+              const totalAccuracy =
+                totalReviewed > 0 ? (totalCorrect / totalReviewed) * 100 : 0;
+              const totalStudyTime = allSessions.reduce((sum, session) => {
+                if (!session.endTime) return sum;
+                return (
+                  sum +
+                  (session.endTime.getTime() - session.startTime.getTime())
+                );
+              }, 0);
+              const recentSessions = allSessions
+                .filter((session) => session.endTime)
+                .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
+                .slice(0, 5);
+              const streak = calculateStreak(allSessions);
+              setStats({
+                totalCards: allCards.length,
+                masteredCards,
+                learningCards,
+                totalAccuracy,
+                totalStudyTime,
+                recentSessions,
+                decks: allDecks,
+                streak,
+              });
+              setIsLoading(false);
+              Alert.alert(
+                "Stats Reset",
+                "All stats and card levels have been reset. Your decks and cards are safe."
+              );
+            } catch (error) {
+              console.error("Failed to reset stats:", error);
+              Alert.alert("Error", "Failed to reset stats");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView
@@ -651,96 +731,7 @@ const StatsScreen: React.FC = () => {
               justifyContent: "center",
             },
           ]}
-          onPress={() => {
-            Alert.alert(
-              "Reset Stats",
-              "Are you sure you want to reset all stats? This will remove all study history but keep your decks and cards. This cannot be undone.",
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Reset",
-                  style: "destructive",
-                  onPress: async () => {
-                    try {
-                      await storage.clearAllSessions();
-                      await storage.resetAllCardLevels(); // Reset card levels
-                      // Reload stats
-                      setIsLoading(true);
-                      const [allCards, allSessions, allDecks] =
-                        await Promise.all([
-                          storage.getAllCards(),
-                          storage.getAllSessions(),
-                          storage.getAllDecks(),
-                        ]);
-                      // Calculate overall stats (same as in loadStatsData)
-                      const masteredCards = allCards.filter(
-                        (card) => card.level >= 5
-                      ).length;
-                      const learningCards = allCards.filter(
-                        (card) => card.level > 0 && card.level < 5
-                      ).length;
-                      const totalCorrect = allSessions.reduce(
-                        (sum, session) =>
-                          sum +
-                          session.cardsReviewed.filter(
-                            (review) => review.result === "correct"
-                          ).length,
-                        0
-                      );
-                      const totalReviewed = allSessions.reduce(
-                        (sum, session) => sum + session.cardsReviewed.length,
-                        0
-                      );
-                      const totalAccuracy =
-                        totalReviewed > 0
-                          ? (totalCorrect / totalReviewed) * 100
-                          : 0;
-                      const totalStudyTime = allSessions.reduce(
-                        (sum, session) => {
-                          if (!session.endTime) return sum;
-                          return (
-                            sum +
-                            (session.endTime.getTime() -
-                              session.startTime.getTime())
-                          );
-                        },
-                        0
-                      );
-                      const recentSessions = allSessions
-                        .filter((session) => session.endTime)
-                        .sort(
-                          (a, b) =>
-                            b.startTime.getTime() - a.startTime.getTime()
-                        )
-                        .slice(0, 5);
-                      const streak = calculateStreak(allSessions);
-                      setStats({
-                        totalCards: allCards.length,
-                        masteredCards,
-                        learningCards,
-                        totalAccuracy,
-                        totalStudyTime,
-                        recentSessions,
-                        decks: allDecks,
-                        streak,
-                      });
-                      setIsLoading(false);
-                      // Show confirmation
-                      Alert.alert(
-                        "Stats Reset",
-                        "All stats and card levels have been reset. Your decks and cards are safe."
-                      );
-                    } catch (error) {
-                      Alert.alert(
-                        "Error",
-                        "Failed to reset stats. Please try again."
-                      );
-                    }
-                  },
-                },
-              ]
-            );
-          }}
+          onPress={handleResetStats}
         >
           <MaterialCommunityIcons
             name="refresh"
