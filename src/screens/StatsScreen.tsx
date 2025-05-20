@@ -663,6 +663,7 @@ const StatsScreen: React.FC = () => {
                   onPress: async () => {
                     try {
                       await storage.clearAllSessions();
+                      await storage.resetAllCardLevels(); // Reset card levels
                       // Reload stats
                       setIsLoading(true);
                       const [allCards, allSessions, allDecks] =
@@ -727,7 +728,7 @@ const StatsScreen: React.FC = () => {
                       // Show confirmation
                       Alert.alert(
                         "Stats Reset",
-                        "All stats have been reset. Your decks and cards are safe."
+                        "All stats and card levels have been reset. Your decks and cards are safe."
                       );
                     } catch (error) {
                       Alert.alert(

@@ -349,4 +349,20 @@ export class StorageService {
       throw new StorageError('Failed to clear all study sessions', error as Error);
     }
   }
+
+  // Reset all card levels to 0
+  async resetAllCardLevels(): Promise<void> {
+    try {
+      debug('Resetting all card levels to 0');
+      const cards = await this.getAllCards();
+      const resetCards = cards.map(card => ({ ...card, level: 0 }));
+      const serialized = serializeDates(resetCards);
+      await AsyncStorage.setItem(STORAGE_KEYS.CARDS, JSON.stringify(serialized));
+      cache.set(STORAGE_KEYS.CARDS, resetCards);
+      debug('All card levels reset to 0');
+    } catch (error) {
+      debug('Failed to reset card levels', error);
+      throw new StorageError('Failed to reset card levels', error as Error);
+    }
+  }
 } 
