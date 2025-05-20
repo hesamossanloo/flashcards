@@ -59,6 +59,28 @@ const parseDates = (obj: any): any => {
   return obj;
 };
 
+// Add new helper functions for data validation and recovery
+const validateAndRecoverData = async (key: string, schema: z.ZodType<any>): Promise<any[]> => {
+  try {
+    const data = await AsyncStorage.getItem(key);
+    if (!data) return [];
+
+    try {
+      const parsed = JSON.parse(data);
+      const withDates = parseDates(parsed);
+      return z.array(schema).parse(withDates);
+    } catch (parseError) {
+      debug(`Failed to parse ${key}, attempting recovery`, parseError);
+      // If parsing fails, try to recover by returning empty array
+      await AsyncStorage.setItem(key, JSON.stringify([]));
+      return [];
+    }
+  } catch (error) {
+    debug(`Failed to get ${key}`, error);
+    return [];
+  }
+};
+
 /**
  * Storage service with caching and encryption
  * Time complexity: O(1) for reads with cache, O(n) for initial load
@@ -78,51 +100,60 @@ export class StorageService {
     return StorageService.instance;
   }
 
-  // Initialize cache on app start
+  // Initialize cache on app start with recovery
   async initialize(): Promise<void> {
     try {
       debug('Initializing storage');
       const [decks, cards, sessions] = await Promise.all([
-        this.getAllDecks(),
-        this.getAllCards(),
-        this.getAllSessions(),
+        validateAndRecoverData(STORAGE_KEYS.DECKS, DeckSchema),
+        validateAndRecoverData(STORAGE_KEYS.CARDS, CardSchema),
+        validateAndRecoverData(STORAGE_KEYS.SESSIONS, StudySessionSchema),
+      ]);
+
+      // Ensure data consistency
+      const validDeckIds = new Set(decks.map(d => d.id));
+      const validCards = cards.filter(card => validDeckIds.has(card.deckId));
+      
+      // Update storage with cleaned data
+      await Promise.all([
+        AsyncStorage.setItem(STORAGE_KEYS.DECKS, JSON.stringify(serializeDates(decks))),
+        AsyncStorage.setItem(STORAGE_KEYS.CARDS, JSON.stringify(serializeDates(validCards))),
+        AsyncStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(serializeDates(sessions))),
       ]);
 
       cache.set(STORAGE_KEYS.DECKS, decks);
-      cache.set(STORAGE_KEYS.CARDS, cards);
+      cache.set(STORAGE_KEYS.CARDS, validCards);
       cache.set(STORAGE_KEYS.SESSIONS, sessions);
-      debug('Storage initialized', { decks: decks.length, cards: cards.length, sessions: sessions.length });
+      
+      debug('Storage initialized', { 
+        decks: decks.length, 
+        cards: validCards.length, 
+        sessions: sessions.length 
+      });
     } catch (error) {
       debug('Failed to initialize storage', error);
+      // Clear cache on initialization failure
+      this.clearCache();
       throw new StorageError('Failed to initialize storage', error as Error);
     }
   }
 
-  // Deck operations
+  // Enhanced deck operations with recovery
   async getAllDecks(): Promise<Deck[]> {
     try {
-      debug('Getting all decks');
       const cached = cache.get(STORAGE_KEYS.DECKS);
       if (cached) {
         debug('Returning cached decks', cached.length);
         return cached;
       }
 
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.DECKS);
-      debug('Raw decks data', data);
-      if (!data) return [];
-
-      const parsed = JSON.parse(data);
-      debug('Parsed decks data', parsed);
-      const decks = parseDates(parsed);
-      debug('Decks with parsed dates', decks);
-      const validated = z.array(DeckSchema).parse(decks);
-      debug('Validated decks', validated);
-      cache.set(STORAGE_KEYS.DECKS, validated);
-      return validated;
+      const decks = await validateAndRecoverData(STORAGE_KEYS.DECKS, DeckSchema);
+      cache.set(STORAGE_KEYS.DECKS, decks);
+      return decks;
     } catch (error) {
       debug('Failed to get decks', error);
-      throw new StorageError('Failed to get decks', error as Error);
+      this.clearCache();
+      return [];
     }
   }
 
@@ -161,21 +192,19 @@ export class StorageService {
     }
   }
 
-  // Card operations (encryption temporarily disabled for development)
+  // Enhanced card operations with recovery
   async getAllCards(): Promise<Card[]> {
     try {
       const cached = cache.get(STORAGE_KEYS.CARDS);
       if (cached) return cached;
 
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.CARDS);
-      if (!data) return [];
-
-      const cards = parseDates(JSON.parse(data));
-      const validated = z.array(CardSchema).parse(cards);
-      cache.set(STORAGE_KEYS.CARDS, validated);
-      return validated;
+      const cards = await validateAndRecoverData(STORAGE_KEYS.CARDS, CardSchema);
+      cache.set(STORAGE_KEYS.CARDS, cards);
+      return cards;
     } catch (error) {
-      throw new StorageError('Failed to get cards', error as Error);
+      debug('Failed to get cards', error);
+      this.clearCache();
+      return [];
     }
   }
 
@@ -209,6 +238,7 @@ export class StorageService {
     }
   }
 
+  // Enhanced getCardsForDeck with better error handling
   async getCardsForDeck(deckId: string): Promise<Card[]> {
     try {
       debug('Getting cards for deck', deckId);
@@ -218,7 +248,8 @@ export class StorageService {
       return deckCards;
     } catch (error) {
       debug('Failed to get cards for deck', error);
-      throw new StorageError('Failed to get cards for deck', error as Error);
+      // Return empty array instead of throwing to prevent app crashes
+      return [];
     }
   }
 
@@ -274,17 +305,22 @@ export class StorageService {
     cache.clear();
   }
 
-  // For development/testing
+  // Enhanced clearStorage with better cleanup
   async clearStorage(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove([
-        STORAGE_KEYS.DECKS,
-        STORAGE_KEYS.CARDS,
-        STORAGE_KEYS.SESSIONS,
-        STORAGE_KEYS.SETTINGS,
+      debug('Clearing storage');
+      await Promise.all([
+        AsyncStorage.multiRemove([
+          STORAGE_KEYS.DECKS,
+          STORAGE_KEYS.CARDS,
+          STORAGE_KEYS.SESSIONS,
+          STORAGE_KEYS.SETTINGS,
+        ]),
+        this.clearCache(),
       ]);
-      this.clearCache();
+      debug('Storage cleared successfully');
     } catch (error) {
+      debug('Failed to clear storage', error);
       throw new StorageError('Failed to clear storage', error as Error);
     }
   }
