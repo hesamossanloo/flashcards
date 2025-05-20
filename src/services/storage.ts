@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as Share from 'expo-sharing';
 import { z } from 'zod';
 import { Card, CardSchema, Deck, DeckSchema, StudySession, StudySessionSchema } from '../types';
 
@@ -8,6 +10,7 @@ const STORAGE_KEYS = {
   CARDS: 'flashcards:cards',
   SESSIONS: 'flashcards:sessions',
   SETTINGS: 'flashcards:settings',
+  BACKUPS: 'flashcards:backups',
 } as const;
 
 // Debug logging helper
@@ -366,6 +369,289 @@ export class StorageService {
     } catch (error) {
       console.error('Failed to reset card levels:', error);
       throw error;
+    }
+  }
+
+  // Create a backup of all data
+  async createBackup(): Promise<void> {
+    try {
+      debug('Creating backup');
+      const [decks, cards, sessions] = await Promise.all([
+        this.getAllDecks(),
+        this.getAllCards(),
+        this.getAllSessions()
+      ]);
+      
+      const backup = {
+        timestamp: new Date().toISOString(),
+        decks,
+        cards,
+        sessions
+      };
+      
+      const backups = await this.getBackups();
+      backups.push(backup);
+      
+      // Keep only last 5 backups
+      if (backups.length > 5) {
+        backups.shift();
+      }
+      
+      await AsyncStorage.setItem(STORAGE_KEYS.BACKUPS, JSON.stringify(backups));
+      debug('Backup created successfully');
+    } catch (error) {
+      debug('Failed to create backup', error);
+      throw new StorageError('Failed to create backup', error as Error);
+    }
+  }
+
+  // Get all available backups
+  async getBackups(): Promise<Array<{ timestamp: string; decks: Deck[]; cards: Card[]; sessions: StudySession[] }>> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.BACKUPS);
+      if (!data) return [];
+      return JSON.parse(data);
+    } catch (error) {
+      debug('Failed to get backups', error);
+      return [];
+    }
+  }
+
+  // Restore from a specific backup
+  async restoreFromBackup(timestamp: string): Promise<void> {
+    try {
+      const backups = await this.getBackups();
+      const backup = backups.find((b) => b.timestamp === timestamp);
+
+      if (!backup) {
+        throw new Error("Backup not found");
+      }
+
+      // Clear all existing data first
+      await Promise.all([
+        AsyncStorage.removeItem(STORAGE_KEYS.DECKS),
+        AsyncStorage.removeItem(STORAGE_KEYS.CARDS),
+        AsyncStorage.removeItem(STORAGE_KEYS.SESSIONS),
+      ]);
+
+      // Clear cache
+      this.clearCache();
+
+      // Restore the backup data
+      await Promise.all([
+        AsyncStorage.setItem(
+          STORAGE_KEYS.DECKS,
+          JSON.stringify(backup.decks)
+        ),
+        AsyncStorage.setItem(
+          STORAGE_KEYS.CARDS,
+          JSON.stringify(backup.cards)
+        ),
+        AsyncStorage.setItem(
+          STORAGE_KEYS.SESSIONS,
+          JSON.stringify(backup.sessions)
+        ),
+      ]);
+
+      // Update cache with restored data
+      cache.set(STORAGE_KEYS.DECKS, backup.decks);
+      cache.set(STORAGE_KEYS.CARDS, backup.cards);
+      cache.set(STORAGE_KEYS.SESSIONS, backup.sessions);
+
+      console.log("Backup restored successfully:", {
+        decks: backup.decks.length,
+        cards: backup.cards.length,
+        sessions: backup.sessions.length,
+      });
+    } catch (error) {
+      console.error("Failed to restore backup:", error);
+      throw error;
+    }
+  }
+
+  // Delete a specific backup
+  async deleteBackup(timestamp: string): Promise<void> {
+    try {
+      debug('Deleting backup', timestamp);
+      const backups = await this.getBackups();
+      const filtered = backups.filter(b => b.timestamp !== timestamp);
+      await AsyncStorage.setItem(STORAGE_KEYS.BACKUPS, JSON.stringify(filtered));
+      debug('Backup deleted successfully');
+    } catch (error) {
+      debug('Failed to delete backup', error);
+      throw new StorageError('Failed to delete backup', error as Error);
+    }
+  }
+
+  // Export a backup to the file system
+  async exportBackup(timestamp: string): Promise<string> {
+    try {
+      debug('Exporting backup', timestamp);
+      const backups = await this.getBackups();
+      const backup = backups.find(b => b.timestamp === timestamp);
+      
+      if (!backup) {
+        throw new Error('Backup not found');
+      }
+
+      // Create a backup directory if it doesn't exist
+      const backupDir = `${FileSystem.documentDirectory}flashcards_backups`;
+      const dirInfo = await FileSystem.getInfoAsync(backupDir);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(backupDir, { intermediates: true });
+      }
+
+      // Create a filename with timestamp
+      const filename = `backup_${timestamp.replace(/[:.]/g, '-')}.json`;
+      const filePath = `${backupDir}/${filename}`;
+
+      // Write the backup to a file
+      await FileSystem.writeAsStringAsync(filePath, JSON.stringify(backup, null, 2));
+      debug('Backup exported successfully to', filePath);
+      
+      return filePath;
+    } catch (error) {
+      debug('Failed to export backup', error);
+      throw new StorageError('Failed to export backup', error as Error);
+    }
+  }
+
+  // Import a backup from the file system
+  async importBackup(filePath: string): Promise<void> {
+    try {
+      debug('Importing backup from', filePath);
+      const fileInfo = await FileSystem.getInfoAsync(filePath);
+      
+      if (!fileInfo.exists) {
+        throw new Error('Backup file not found');
+      }
+
+      // Read and parse the backup file
+      const fileContent = await FileSystem.readAsStringAsync(filePath);
+      const backup = JSON.parse(fileContent);
+
+      // Validate the backup structure
+      if (!backup.timestamp || !backup.decks || !backup.cards || !backup.sessions) {
+        throw new Error('Invalid backup file format');
+      }
+
+      // Get existing backups
+      let backups = await this.getBackups();
+      
+      // Check if this backup already exists
+      const existingIndex = backups.findIndex(b => b.timestamp === backup.timestamp);
+      if (existingIndex !== -1) {
+        // Prompt user for overwrite (handled in UI)
+        throw new Error('A backup with this timestamp already exists. Please confirm overwrite.');
+      }
+
+      // Add the new backup
+      backups.push(backup);
+      
+      // Keep only last 5 backups
+      if (backups.length > 5) {
+        backups.shift();
+      }
+
+      // Save the updated backups
+      await AsyncStorage.setItem(STORAGE_KEYS.BACKUPS, JSON.stringify(backups));
+      debug('Backup imported successfully');
+    } catch (error: any) {
+      debug('Failed to import backup', error);
+      throw new StorageError(error.message || 'Failed to import backup', error as Error);
+    }
+  }
+
+  // Get all available backup files from the file system
+  async getBackupFiles(): Promise<string[]> {
+    try {
+      const backupDir = `${FileSystem.documentDirectory}flashcards_backups`;
+      const dirInfo = await FileSystem.getInfoAsync(backupDir);
+      
+      if (!dirInfo.exists) {
+        return [];
+      }
+
+      const files = await FileSystem.readDirectoryAsync(backupDir);
+      return files.filter(file => file.endsWith('.json'));
+    } catch (error) {
+      debug('Failed to get backup files', error);
+      return [];
+    }
+  }
+
+  // Delete a backup file from the file system
+  async deleteBackupFile(filePath: string): Promise<void> {
+    try {
+      debug('Deleting backup file', filePath);
+      await FileSystem.deleteAsync(filePath);
+      debug('Backup file deleted successfully');
+    } catch (error) {
+      debug('Failed to delete backup file', error);
+      throw new StorageError('Failed to delete backup file', error as Error);
+    }
+  }
+
+  async shareBackup(timestamp: string): Promise<void> {
+    try {
+      const filePath = await this.exportBackup(timestamp);
+      const fileName = `flashcards_backup_${timestamp}.json`;
+      
+      // Create a public directory for sharing
+      const publicDir = `${FileSystem.cacheDirectory}flashcards_backups`;
+      const dirInfo = await FileSystem.getInfoAsync(publicDir);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(publicDir, { intermediates: true });
+      }
+
+      // Copy the file to the public directory
+      const publicFilePath = `${publicDir}/${fileName}`;
+      await FileSystem.copyAsync({
+        from: filePath,
+        to: publicFilePath
+      });
+      
+      // Share the file from the public directory
+      await Share.shareAsync(publicFilePath, {
+        mimeType: 'application/json',
+        dialogTitle: `Flashcards Backup - ${new Date(timestamp).toLocaleString()}`,
+      });
+
+      // Clean up the public file after sharing
+      await FileSystem.deleteAsync(publicFilePath, { idempotent: true });
+    } catch (error) {
+      console.error("Failed to share backup:", error);
+      throw error;
+    }
+  }
+
+  async overwriteBackup(filePath: string): Promise<void> {
+    try {
+      debug('Overwriting backup from', filePath);
+      const fileInfo = await FileSystem.getInfoAsync(filePath);
+      if (!fileInfo.exists) {
+        throw new Error('Backup file not found');
+      }
+      const fileContent = await FileSystem.readAsStringAsync(filePath);
+      const backup = JSON.parse(fileContent);
+      if (!backup.timestamp || !backup.decks || !backup.cards || !backup.sessions) {
+        throw new Error('Invalid backup file format');
+      }
+      let backups = await this.getBackups();
+      const existingIndex = backups.findIndex(b => b.timestamp === backup.timestamp);
+      if (existingIndex !== -1) {
+        backups[existingIndex] = backup;
+      } else {
+        backups.push(backup);
+      }
+      if (backups.length > 5) {
+        backups.shift();
+      }
+      await AsyncStorage.setItem(STORAGE_KEYS.BACKUPS, JSON.stringify(backups));
+      debug('Backup overwritten successfully');
+    } catch (error: any) {
+      debug('Failed to overwrite backup', error);
+      throw new StorageError(error.message || 'Failed to overwrite backup', error as Error);
     }
   }
 } 
