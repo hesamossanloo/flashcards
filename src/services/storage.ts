@@ -336,4 +336,17 @@ export class StorageService {
       throw new StorageError('Failed to delete deck', error as Error);
     }
   }
+
+  // Clear all study sessions (but not decks or cards)
+  async clearAllSessions(): Promise<void> {
+    try {
+      debug('Clearing all study sessions');
+      await AsyncStorage.removeItem(STORAGE_KEYS.SESSIONS);
+      cache.delete(STORAGE_KEYS.SESSIONS);
+      debug('All study sessions cleared');
+    } catch (error) {
+      debug('Failed to clear all study sessions', error);
+      throw new StorageError('Failed to clear all study sessions', error as Error);
+    }
+  }
 } 
