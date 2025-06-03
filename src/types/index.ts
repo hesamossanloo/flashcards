@@ -88,6 +88,7 @@ export type RootStackParamList = {
   CreateDeck: undefined;
   EditDeck: { deckId: string };
   Study: { deckId: string };
+  StudySession: { cards: Card[] };
   AddCard: { deckId: string; isFirstCard: boolean };
   Stats: {
     sessionId: string;
