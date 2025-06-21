@@ -1,4 +1,4 @@
-package com.flashcards.app
+package com.hesamossanloo.flashcards
 
 import android.app.Application
 import android.content.res.Configuration

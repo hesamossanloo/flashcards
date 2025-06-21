@@ -1,4 +1,4 @@
-package com.flashcards.app
+package com.hesamossanloo.flashcards
 
 import android.os.Build
 import android.os.Bundle

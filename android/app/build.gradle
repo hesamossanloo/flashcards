@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.flashcards.app'
+    namespace 'com.hesamossanloo.flashcards'
     defaultConfig {
-        applicationId 'com.flashcards.app'
+        applicationId 'com.hesamossanloo.flashcards'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

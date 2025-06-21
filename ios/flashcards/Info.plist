@@ -27,7 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>com.flashcards.app</string>
+          <string>com.hesamossanloo.flashcards</string>
         </array>
       </dict>
       <dict>

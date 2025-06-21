@@ -14,18 +14,23 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.flashcards.app"
+      "bundleIdentifier": "com.hesamossanloo.flashcards"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.flashcards.app",
+      "package": "com.hesamossanloo.flashcards",
       "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "415659b1-643c-4e1d-b7e5-de0abf8e726a"
+      }
     }
   }
 }
