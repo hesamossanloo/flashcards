@@ -78,6 +78,9 @@ importers:
       '@babel/core':
         specifier: ^7.20.0
         version: 7.27.4
+      '@expo/metro-config':
+        specifier: ~0.20.15
+        version: 0.20.15
       '@types/react':
         specifier: ~19.0.14
         version: 19.0.14
@@ -704,6 +707,9 @@ packages:
 
   '@expo/metro-config@0.20.14':
     resolution: {integrity: sha512-tYDDubuZycK+NX00XN7BMu73kBur/evOPcKfxc+UBeFfgN2EifOITtdwSUDdRsbtJ2OnXwMY1HfRUG3Lq3l4cw==}
+
+  '@expo/metro-config@0.20.15':
+    resolution: {integrity: sha512-m8i58IQ7I8iOdVRfOhFmhPMHuhgeTVfQp1+mxW7URqPZaeVbuDVktPqOiNoHraKBoGPLKMUSsD+qdUuJVL3wMg==}
 
   '@expo/osascript@2.2.4':
     resolution: {integrity: sha512-Q+Oyj+1pdRiHHpev9YjqfMZzByFH8UhKvSszxa0acTveijjDhQgWrq4e9T/cchBHi0GWZpGczWyiyJkk1wM1dg==}
@@ -4236,7 +4242,7 @@ snapshots:
       '@expo/env': 1.0.5
       '@expo/image-utils': 0.7.4
       '@expo/json-file': 9.1.4
-      '@expo/metro-config': 0.20.14
+      '@expo/metro-config': 0.20.15
       '@expo/osascript': 2.2.4
       '@expo/package-manager': 1.8.4
       '@expo/plist': 0.3.4
@@ -4404,6 +4410,30 @@ snapshots:
       dotenv: 16.4.7
       dotenv-expand: 11.0.7
       getenv: 1.0.0
+      glob: 10.4.5
+      jsc-safe-url: 0.2.4
+      lightningcss: 1.27.0
+      minimatch: 9.0.5
+      postcss: 8.4.49
+      resolve-from: 5.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@expo/metro-config@0.20.15':
+    dependencies:
+      '@babel/core': 7.27.4
+      '@babel/generator': 7.27.5
+      '@babel/parser': 7.27.5
+      '@babel/types': 7.27.6
+      '@expo/config': 11.0.10
+      '@expo/env': 1.0.5
+      '@expo/json-file': 9.1.4
+      '@expo/spawn-async': 1.7.2
+      chalk: 4.1.2
+      debug: 4.4.1
+      dotenv: 16.4.7
+      dotenv-expand: 11.0.7
+      getenv: 2.0.0
       glob: 10.4.5
       jsc-safe-url: 0.2.4
       lightningcss: 1.27.0
