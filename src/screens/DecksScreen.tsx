@@ -327,6 +327,7 @@ const styles = StyleSheet.create({
     position: "relative",
     justifyContent: "center",
     alignItems: "stretch", // Ensure children fill the same height
+    marginBottom: theme.spacing.lg,
   },
   deleteButton: {
     position: "absolute",
