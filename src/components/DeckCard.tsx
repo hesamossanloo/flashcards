@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import { ProgressBar, Surface, Text } from "react-native-paper";
 import { theme } from "../assets/themes/theme";
 import { Deck } from "../types/index";
@@ -49,11 +49,7 @@ export default function DeckCard({
   };
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      onLongPress={onLongPress}
-      activeOpacity={0.8}
-    >
+    <Pressable onPress={onPress} onLongPress={onLongPress}>
       <Surface
         style={[styles.card, sharpLeft && styles.cardSharpLeft]}
         elevation={2}
@@ -150,7 +146,7 @@ export default function DeckCard({
           </View>
         </LinearGradient>
       </Surface>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
