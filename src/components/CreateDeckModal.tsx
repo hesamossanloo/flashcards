@@ -118,6 +118,8 @@ const styles = StyleSheet.create({
   },
   title: {
     ...theme.typography.h2,
+    fontWeight: theme.typography.h2
+      .fontWeight as import("react-native").TextStyle["fontWeight"],
     color: theme.colors.text,
   },
   label: {
