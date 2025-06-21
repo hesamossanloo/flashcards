@@ -4,11 +4,11 @@
     "slug": "flashcards",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/rams-style-icon.png",
     "userInterfaceStyle": "light",
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/rams-style-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
