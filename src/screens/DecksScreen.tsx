@@ -1,15 +1,12 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-import {
-  CompositeNavigationProp,
-  useNavigation,
-} from "@react-navigation/native";
+// @ts-ignore
+import { useNavigation } from "@react-navigation/native";
+// @ts-ignore
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
-  Dimensions,
   FlatList,
   StyleSheet,
   Text,
@@ -21,37 +18,33 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
+import { theme } from "../assets/themes/theme";
 import CreateDeckModal from "../components/CreateDeckModal";
-import { useTheme } from "../hooks/useTheme";
+import DeckCard from "../components/DeckCard";
 import { StorageService } from "../services/storage";
-import { Deck, MainTabParamList, RootStackParamList } from "../types";
+import { Deck, RootStackParamList } from "../types";
 import { generateUUID } from "../utils/uuid";
 
-type NavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<MainTabParamList>,
-  NativeStackNavigationProp<RootStackParamList>
->;
-
-const { width } = Dimensions.get("window");
-
 export default function DecksScreen() {
-  const theme = useTheme();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const storage = StorageService.getInstance();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
-  const [activeSwipe, setActiveSwipe] = useState<string | null>(null);
-  const animationMap = useRef(new Map<string, Animated.Value>());
-  const swipeStateMap = useRef(new Map<string, boolean>());
+  const [swipedDecks, setSwipedDecks] = useState<{ [id: string]: boolean }>({});
 
-  // Initialize or get animation value for a deck
+  const animationMap = useRef(new Map<string, Animated.Value>()).current;
+
   const getAnimationValue = (deckId: string) => {
-    if (!animationMap.current.has(deckId)) {
-      animationMap.current.set(deckId, new Animated.Value(0));
+    if (!animationMap.has(deckId)) {
+      const animatedValue = new Animated.Value(0);
+      animatedValue.addListener(({ value }) => {
+        setSwipedDecks((prev) => ({ ...prev, [deckId]: value > 10 }));
+      });
+      animationMap.set(deckId, animatedValue);
     }
-    return animationMap.current.get(deckId)!;
+    return animationMap.get(deckId)!;
   };
 
   // Load decks
@@ -166,179 +159,88 @@ export default function DecksScreen() {
     );
   };
 
+  const handleDeckPress = useCallback(
+    (deck: Deck) => {
+      navigation.navigate("DeckDetail", { deckId: deck.id });
+    },
+    [navigation]
+  );
+
   const renderDeckItem = useCallback(
     ({ item: deck }: { item: Deck }) => {
       const translateX = getAnimationValue(deck.id);
       const deleteButtonWidth = 100;
-      const progress =
-        deck.totalCards > 0 ? (deck.masteredCards / deck.totalCards) * 100 : 0;
 
-      // Add interpolation for border radius
-      const borderRadius = translateX.interpolate({
-        inputRange: [0, deleteButtonWidth * 0.3],
-        outputRange: [16, 0],
-        extrapolate: "clamp",
-      });
-
-      const gesture = Gesture.Pan()
-        .activeOffsetX([30, Infinity])
+      const panGesture = Gesture.Pan()
+        .activeOffsetX([10, 9999]) // Only allow swiping right
         .failOffsetY([-5, 5])
         .onUpdate((e) => {
-          if (e.translationX <= 0) return;
-          translateX.setValue(
-            Math.max(0, Math.min(e.translationX, deleteButtonWidth * 1.1))
+          // Only allow swiping right (positive X)
+          const newX = Math.max(
+            0,
+            Math.min(e.translationX, deleteButtonWidth * 1.5)
           );
+          translateX.setValue(newX);
         })
         .onEnd((e) => {
-          const swipeVelocity = e.velocityX;
-          const currentGestureTranslation = e.translationX;
-          const overSwipeThreshold = deleteButtonWidth * 1.7;
-
-          if (
-            currentGestureTranslation > overSwipeThreshold &&
-            swipeVelocity > 200
-          ) {
-            handleDeleteDeck(deck.id);
-            swipeStateMap.current.set(deck.id, false);
-          } else if (
-            currentGestureTranslation > deleteButtonWidth / 2 ||
-            (swipeVelocity > 400 &&
-              currentGestureTranslation > deleteButtonWidth / 3)
-          ) {
-            Animated.spring(translateX, {
-              toValue: deleteButtonWidth,
-              velocity: swipeVelocity,
-              useNativeDriver: true,
-            }).start();
-            swipeStateMap.current.set(deck.id, true);
-          } else {
-            Animated.spring(translateX, {
-              toValue: 0,
-              velocity: swipeVelocity,
-              useNativeDriver: true,
-            }).start();
-            swipeStateMap.current.set(deck.id, false);
-          }
+          const toValue =
+            e.translationX > deleteButtonWidth / 2 || e.velocityX > 500
+              ? deleteButtonWidth
+              : 0;
+          Animated.spring(translateX, {
+            toValue,
+            useNativeDriver: true,
+          }).start();
         });
 
       const tapGesture = Gesture.Tap().onEnd(() => {
-        if (swipeStateMap.current.get(deck.id)) {
-          // If the deck is swiped open, close it
+        const currentX = (translateX as any)._value;
+        if (currentX !== 0) {
+          // If swiped, close it on tap
           Animated.spring(translateX, {
             toValue: 0,
             useNativeDriver: true,
           }).start();
-          swipeStateMap.current.set(deck.id, false);
         } else {
-          // If the deck is not swiped open, navigate to detail
           navigation.navigate("DeckDetail", { deckId: deck.id });
         }
       });
 
-      const composedGesture = Gesture.Race(gesture, tapGesture);
+      const composedGesture = Gesture.Race(panGesture, tapGesture);
 
       return (
         <GestureHandlerRootView>
           <View style={styles.deckItemContainer}>
             <TouchableOpacity
-              style={[
-                styles.deleteActionContainer,
-                { backgroundColor: theme.colors.error },
-              ]}
+              style={[styles.deleteButton, { width: deleteButtonWidth }]}
               onPress={() => handleDeleteDeck(deck.id)}
-              activeOpacity={0.8}
             >
               <MaterialCommunityIcons
-                name="delete-forever"
+                name="delete-forever-outline"
                 size={30}
-                color="white"
+                color="#ffffff"
               />
-              <Text style={styles.deleteActionText}>Delete</Text>
+              <Text style={styles.deleteButtonText}>Delete</Text>
             </TouchableOpacity>
 
             <GestureDetector gesture={composedGesture}>
-              <Animated.View style={{ transform: [{ translateX }] }}>
-                <Animated.View
-                  style={[
-                    styles.deckItem,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      borderTopLeftRadius: borderRadius,
-                      borderBottomLeftRadius: borderRadius,
-                      borderTopRightRadius: 16,
-                      borderBottomRightRadius: 16,
-                    },
-                  ]}
-                >
-                  <View style={styles.deckHeader}>
-                    <MaterialCommunityIcons
-                      name="cards"
-                      size={24}
-                      color={deck.color || theme.colors.primary}
-                    />
-                    <Text
-                      style={[
-                        styles.cardCount,
-                        { color: theme.colors.textSecondary },
-                      ]}
-                    >
-                      {deck.totalCards} cards
-                    </Text>
-                  </View>
-
-                  <Text
-                    style={[styles.deckName, { color: theme.colors.text }]}
-                    numberOfLines={2}
-                  >
-                    {deck.name}
-                  </Text>
-
-                  {deck.description ? (
-                    <Text
-                      style={[
-                        styles.deckDescription,
-                        { color: theme.colors.textSecondary },
-                      ]}
-                      numberOfLines={2}
-                    >
-                      {deck.description}
-                    </Text>
-                  ) : null}
-
-                  <View style={styles.progressContainer}>
-                    <View
-                      style={[
-                        styles.progressBar,
-                        { backgroundColor: theme.colors.border },
-                      ]}
-                    >
-                      <View
-                        style={[
-                          styles.progressFill,
-                          {
-                            backgroundColor: deck.color || theme.colors.primary,
-                            width: `${progress}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text
-                      style={[
-                        styles.progressText,
-                        { color: theme.colors.textSecondary },
-                      ]}
-                    >
-                      {Math.round(progress)}% mastered
-                    </Text>
-                  </View>
-                </Animated.View>
+              <Animated.View
+                style={{
+                  transform: [{ translateX }],
+                }}
+              >
+                <DeckCard
+                  deck={deck}
+                  onPress={() => {}}
+                  sharpLeft={!!swipedDecks[deck.id]}
+                />
               </Animated.View>
             </GestureDetector>
           </View>
         </GestureHandlerRootView>
       );
     },
-    [theme, navigation]
+    [animationMap, navigation, handleDeleteDeck, swipedDecks]
   );
 
   return (
@@ -350,6 +252,7 @@ export default function DecksScreen() {
         renderItem={renderDeckItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyContainer}>
@@ -394,112 +297,52 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContainer: {
-    padding: 16,
+    padding: theme.spacing.lg,
     paddingBottom: 80, // Space for FAB
-  },
-  deckItem: {
-    width: "100%",
-    marginBottom: 0,
-    padding: 16,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    backgroundColor: "#fff",
-  },
-  deckHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  cardCount: {
-    fontSize: 12,
-  },
-  deckName: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  deckDescription: {
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  progressContainer: {
-    marginTop: "auto",
-  },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
-    marginBottom: 4,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 12,
-    textAlign: "right",
   },
   fab: {
     position: "absolute",
-    right: 16,
-    bottom: 16,
+    right: theme.spacing.lg,
+    bottom: theme.spacing.lg,
     width: 56,
     height: 56,
     borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    ...theme.shadows.large,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 32,
+    paddingVertical: theme.spacing.xxl,
   },
   emptyText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: theme.spacing.lg,
+    ...theme.typography.body,
     textAlign: "center",
-  },
-  deleteButton: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 80,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
-  },
-  headerButton: {
-    marginRight: 16,
+    color: theme.colors.textSecondary,
   },
   deckItemContainer: {
     position: "relative",
-    marginBottom: 16,
+    justifyContent: "center",
+    alignItems: "stretch", // Ensure children fill the same height
   },
-  deleteActionContainer: {
+  deleteButton: {
     position: "absolute",
     top: 0,
     left: 0,
-    bottom: 0,
-    width: 100,
-    flexDirection: "column",
-    alignItems: "center",
+    height: "100%",
+    backgroundColor: theme.colors.error,
     justifyContent: "center",
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
-    zIndex: -1,
+    alignItems: "center",
+    borderTopLeftRadius: theme.roundness,
+    borderBottomLeftRadius: theme.roundness,
+    zIndex: 0,
   },
-  deleteActionText: {
-    color: "white",
+  deleteButtonText: {
+    color: "#ffffff",
+    marginTop: theme.spacing.xs,
     fontSize: 12,
-    marginTop: 4,
   },
 });

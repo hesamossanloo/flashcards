@@ -1,16 +1,16 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { useTheme } from '../hooks/useTheme';
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { theme } from "../assets/themes/theme";
 
 interface CreateDeckModalProps {
   visible: boolean;
@@ -23,15 +23,14 @@ export default function CreateDeckModal({
   onClose,
   onCreateDeck,
 }: CreateDeckModalProps) {
-  const theme = useTheme();
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = () => {
     if (!name.trim() || isSubmitting) return;
     setIsSubmitting(true);
     onCreateDeck(name.trim());
-    setName('');
+    setName("");
     setIsSubmitting(false);
   };
 
@@ -43,10 +42,12 @@ export default function CreateDeckModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
-        <View style={[styles.content, { backgroundColor: theme.colors.surface }]}>
+        <View
+          style={[styles.content, { backgroundColor: theme.colors.surface }]}
+        >
           <View style={styles.header}>
             <Text style={[styles.title, { color: theme.colors.text }]}>
               Create New Deck
@@ -69,7 +70,7 @@ export default function CreateDeckModal({
               {
                 backgroundColor: theme.colors.background,
                 color: theme.colors.text,
-                borderColor: theme.colors.border,
+                borderColor: theme.colors.cardBorder,
               },
             ]}
             placeholder="Enter deck name"
@@ -100,47 +101,49 @@ export default function CreateDeckModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 20,
+    justifyContent: "center",
+    backgroundColor: theme.colors.backdrop,
+    padding: theme.spacing.lg,
   },
   content: {
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: theme.roundness,
+    padding: theme.spacing.lg,
+    ...theme.shadows.large,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing.lg,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    ...theme.typography.h2,
+    color: theme.colors.text,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+    ...theme.typography.body,
+    fontWeight: "600",
+    marginBottom: theme.spacing.sm,
+    color: theme.colors.text,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 20,
+    borderRadius: theme.roundness,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
     fontSize: 16,
   },
   button: {
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
+    padding: theme.spacing.md,
+    borderRadius: theme.roundness,
+    alignItems: "center",
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: "#fff",
+    ...theme.typography.body,
+    fontWeight: "600",
   },
-}); 
+});

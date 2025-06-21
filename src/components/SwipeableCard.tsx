@@ -1,17 +1,17 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    PanResponder,
-    StyleSheet,
-    Text,
-    TouchableWithoutFeedback,
-    View,
-} from 'react-native';
-import { useTheme } from '../hooks/useTheme';
-import { Card } from '../types';
+  Animated,
+  Dimensions,
+  PanResponder,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import { theme } from "../assets/themes/theme";
+import { Card } from "../types";
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_WIDTH = Dimensions.get("window").width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 const SWIPE_OUT_DURATION = 200;
 
@@ -32,25 +32,24 @@ export const SwipeableCard: React.FC<Props> = ({
   isFlipped,
   onFlip,
 }) => {
-  const theme = useTheme();
   const position = useRef(new Animated.ValueXY()).current;
   const [isPanning, setIsPanning] = useState(false);
-  
+
   // Card rotation based on swipe
   const rotation = position.x.interpolate({
     inputRange: [-SCREEN_WIDTH * 1.5, 0, SCREEN_WIDTH * 1.5],
-    outputRange: ['-30deg', '0deg', '30deg'],
+    outputRange: ["-30deg", "0deg", "30deg"],
   });
 
   // Flip rotation
   const flipRotation = useRef(new Animated.Value(0)).current;
   const frontRotation = flipRotation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '180deg'],
+    outputRange: ["0deg", "180deg"],
   });
   const backRotation = flipRotation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['180deg', '360deg'],
+    outputRange: ["180deg", "360deg"],
   });
 
   // Update flip animation when isFlipped changes
@@ -74,37 +73,47 @@ export const SwipeableCard: React.FC<Props> = ({
   const wrongOpacity = position.x.interpolate({
     inputRange: [-SCREEN_WIDTH * 0.3, -SCREEN_WIDTH * 0.1],
     outputRange: [1, 0],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   const correctOpacity = position.x.interpolate({
     inputRange: [SCREEN_WIDTH * 0.1, SCREEN_WIDTH * 0.3],
     outputRange: [0, 1],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   const cardScale = position.x.interpolate({
-    inputRange: [-SCREEN_WIDTH * 1.5, -SCREEN_WIDTH, 0, SCREEN_WIDTH, SCREEN_WIDTH * 1.5],
+    inputRange: [
+      -SCREEN_WIDTH * 1.5,
+      -SCREEN_WIDTH,
+      0,
+      SCREEN_WIDTH,
+      SCREEN_WIDTH * 1.5,
+    ],
     outputRange: [0.8, 0.9, 1, 0.9, 0.8],
   });
 
-  const forceSwipe = useCallback((direction: 'right' | 'left') => {
-    const x = direction === 'right' ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
-    Animated.timing(position, {
-      toValue: { x, y: 0 },
-      duration: SWIPE_OUT_DURATION,
-      useNativeDriver: true,
-    }).start(() => {
-      if (direction === 'right') {
-        onSwipeRight(card);
-      } else {
-        onSwipeLeft(card);
-      }
-      position.setValue({ x: 0, y: 0 });
-      setIsPanning(false);
-      onSwipeComplete();
-    });
-  }, [card, onSwipeLeft, onSwipeRight, onSwipeComplete, position]);
+  const forceSwipe = useCallback(
+    (direction: "right" | "left") => {
+      const x =
+        direction === "right" ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
+      Animated.timing(position, {
+        toValue: { x, y: 0 },
+        duration: SWIPE_OUT_DURATION,
+        useNativeDriver: true,
+      }).start(() => {
+        if (direction === "right") {
+          onSwipeRight(card);
+        } else {
+          onSwipeLeft(card);
+        }
+        position.setValue({ x: 0, y: 0 });
+        setIsPanning(false);
+        onSwipeComplete();
+      });
+    },
+    [card, onSwipeLeft, onSwipeRight, onSwipeComplete, position]
+  );
 
   const resetPosition = useCallback(() => {
     Animated.spring(position, {
@@ -122,13 +131,16 @@ export const SwipeableCard: React.FC<Props> = ({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gesture) => {
         // Only handle horizontal movements greater than 10 pixels
-        return Math.abs(gesture.dx) > 10 && Math.abs(gesture.dx) > Math.abs(gesture.dy);
+        return (
+          Math.abs(gesture.dx) > 10 &&
+          Math.abs(gesture.dx) > Math.abs(gesture.dy)
+        );
       },
       onPanResponderGrant: () => {
         setIsPanning(true);
         position.setOffset({
           x: position.x._value,
-          y: position.y._value
+          y: position.y._value,
         });
         position.setValue({ x: 0, y: 0 });
       },
@@ -138,11 +150,11 @@ export const SwipeableCard: React.FC<Props> = ({
       onPanResponderRelease: (_, gesture) => {
         setIsPanning(false);
         position.flattenOffset();
-        
+
         if (gesture.dx > SWIPE_THRESHOLD) {
-          forceSwipe('right');
+          forceSwipe("right");
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
-          forceSwipe('left');
+          forceSwipe("left");
         } else {
           resetPosition();
         }
@@ -207,36 +219,39 @@ export const SwipeableCard: React.FC<Props> = ({
           </Text>
         </Animated.View>
 
-        {/* Front of card */}
+        {/* Card */}
         <TouchableWithoutFeedback onPress={handleCardTap}>
-          <Animated.View
-            style={[styles.card, frontStyle]}
-          >
-            <View style={[styles.content, styles.frontContent]}>
-              <Text style={[styles.cardLabel, { color: theme.colors.primary }]}>
-                Question
-              </Text>
-              <Text style={[styles.text, { color: theme.colors.text }]}>
+          <View style={styles.cardContainer}>
+            {/* Front of card */}
+            <Animated.View
+              style={[
+                styles.card,
+                styles.cardFront,
+                frontStyle,
+                { backgroundColor: theme.colors.cardBackground },
+              ]}
+              pointerEvents="box-none"
+            >
+              <Text style={[styles.cardText, { color: theme.colors.text }]}>
                 {card.front}
               </Text>
-            </View>
-          </Animated.View>
-        </TouchableWithoutFeedback>
+            </Animated.View>
 
-        {/* Back of card */}
-        <TouchableWithoutFeedback onPress={handleCardTap}>
-          <Animated.View
-            style={[styles.card, styles.cardBack, backStyle]}
-          >
-            <View style={[styles.content, styles.backContent]}>
-              <Text style={[styles.cardLabel, { color: theme.colors.primary }]}>
-                Answer
-              </Text>
-              <Text style={[styles.text, { color: theme.colors.text }]}>
+            {/* Back of card */}
+            <Animated.View
+              style={[
+                styles.card,
+                styles.cardBack,
+                backStyle,
+                { backgroundColor: theme.colors.surfaceVariant },
+              ]}
+              pointerEvents="box-none"
+            >
+              <Text style={[styles.cardText, { color: theme.colors.text }]}>
                 {card.back}
               </Text>
-            </View>
-          </Animated.View>
+            </Animated.View>
+          </View>
         </TouchableWithoutFeedback>
       </Animated.View>
     </View>
@@ -245,70 +260,57 @@ export const SwipeableCard: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
-    height: 300,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardContainer: {
     width: SCREEN_WIDTH - 40,
-    alignSelf: 'center',
+    height: 200,
+    position: "relative",
   },
   card: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    borderRadius: 20,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    backfaceVisibility: 'hidden',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    borderRadius: theme.roundness,
+    padding: theme.spacing.lg,
+    justifyContent: "center",
+    alignItems: "center",
+    ...theme.shadows.large,
+    backfaceVisibility: "hidden",
+  },
+  cardFront: {
+    backgroundColor: theme.colors.cardBackground,
   },
   cardBack: {
-    transform: [{ rotateY: '180deg' }],
-    backgroundColor: '#EDF7ED', // Soft mint green for answers
+    backgroundColor: theme.colors.surfaceVariant,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 20,
-  },
-  frontContent: {
-    backgroundColor: '#F5F6FF', // Soft blue for questions
-  },
-  backContent: {
-    backgroundColor: '#EDF7ED', // Matching the back card color
-  },
-  cardLabel: {
-    fontSize: 12,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  text: {
-    fontSize: 24,
-    textAlign: 'center',
+  cardText: {
+    ...theme.typography.body,
+    textAlign: "center",
+    lineHeight: 24,
   },
   resultIndicator: {
-    position: 'absolute',
-    top: '45%',
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    zIndex: 1000,
+    position: "absolute",
+    top: 50,
+    padding: theme.spacing.md,
+    borderRadius: theme.roundness,
+    borderWidth: 2,
+    zIndex: 1,
   },
   wrongIndicator: {
     left: 20,
-    borderWidth: 2,
-    borderColor: '#FF4444',
+    borderColor: theme.colors.error,
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
   },
   correctIndicator: {
     right: 20,
-    borderWidth: 2,
-    borderColor: '#00C851',
+    borderColor: theme.colors.success,
+    backgroundColor: "rgba(16, 185, 129, 0.1)",
   },
   resultText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    ...theme.typography.body,
+    fontWeight: "bold",
   },
-}); 
+});

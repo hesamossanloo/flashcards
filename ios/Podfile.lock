@@ -278,6 +278,8 @@ PODS:
     - ExpoModulesCore
   - ExpoKeepAwake (14.1.4):
     - ExpoModulesCore
+  - ExpoLinearGradient (14.1.5):
+    - ExpoModulesCore
   - ExpoModulesCore (2.4.0):
     - DoubleConversion
     - glog
@@ -2083,30 +2085,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.6.3):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNScreens (4.11.1):
     - DoubleConversion
     - glog
@@ -2177,6 +2155,7 @@ DEPENDENCIES:
   - "ExpoFileSystem (from `../node_modules/.pnpm/expo-file-system@18.1.10_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+cor_f421bfb16bcbc38499c55d10308664b4/node_modules/expo-file-system/ios`)"
   - "ExpoFont (from `../node_modules/.pnpm/expo-font@13.3.1_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+core@7.27.4_a95293a904458f9fd5eff972e05462bd/node_modules/expo-font/ios`)"
   - "ExpoKeepAwake (from `../node_modules/.pnpm/expo-keep-awake@14.1.4_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+core@_fb97288de7464fcf2eb2b998b8ce5018/node_modules/expo-keep-awake/ios`)"
+  - "ExpoLinearGradient (from `../node_modules/.pnpm/expo-linear-gradient@14.1.5_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+_8360805049e47f38d54d6fbae5a80c72/node_modules/expo-linear-gradient/ios`)"
   - "ExpoModulesCore (from `../node_modules/.pnpm/expo-modules-core@2.4.0/node_modules/expo-modules-core`)"
   - "ExpoSharing (from `../node_modules/.pnpm/expo-sharing@13.1.5_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+core@7.2_3ac22846993a9858ad860533224aca98/node_modules/expo-sharing/ios`)"
   - "EXUpdatesInterface (from `../node_modules/.pnpm/expo-updates-interface@1.1.0_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel_b1cb23bdbb35afa90147b778c97c120b/node_modules/expo-updates-interface/ios`)"
@@ -2252,7 +2231,6 @@ DEPENDENCIES:
   - "ReactCommon/turbomodule/core (from `../node_modules/.pnpm/react-native@0.79.2_@babel+core@7.27.4_@types+react@19.0.14_react@19.0.0/node_modules/react-native/ReactCommon`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
-  - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - "Yoga (from `../node_modules/.pnpm/react-native@0.79.2_@babel+core@7.27.4_@types+react@19.0.14_react@19.0.0/node_modules/react-native/ReactCommon/yoga`)"
 
@@ -2291,6 +2269,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/.pnpm/expo-font@13.3.1_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+core@7.27.4_a95293a904458f9fd5eff972e05462bd/node_modules/expo-font/ios"
   ExpoKeepAwake:
     :path: "../node_modules/.pnpm/expo-keep-awake@14.1.4_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+core@_fb97288de7464fcf2eb2b998b8ce5018/node_modules/expo-keep-awake/ios"
+  ExpoLinearGradient:
+    :path: "../node_modules/.pnpm/expo-linear-gradient@14.1.5_expo@53.0.11_@babel+core@7.27.4_react-native@0.79.2_@babel+_8360805049e47f38d54d6fbae5a80c72/node_modules/expo-linear-gradient/ios"
   ExpoModulesCore:
     :path: "../node_modules/.pnpm/expo-modules-core@2.4.0/node_modules/expo-modules-core"
   ExpoSharing:
@@ -2438,8 +2418,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
-  RNReanimated:
-    :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   Yoga:
@@ -2461,6 +2439,7 @@ SPEC CHECKSUMS:
   ExpoFileSystem: 3a98ca2a6f13674ecfd97327d1b44a8ace444cbd
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
   ExpoKeepAwake: e8dedc115d9f6f24b153ccd2d1d8efcdfd68a527
+  ExpoLinearGradient: ce334cff9859da4635c1d8eff6e291b11b04ccbb
   ExpoModulesCore: e2e363bcdee87b46f858586d1887ebb215582001
   ExpoSharing: 04b346bdd7c8ea1fa87047ac7bba65c37bde4f51
   EXUpdatesInterface: 64f35449b8ef89ce08cdd8952a4d119b5de6821d
@@ -2534,7 +2513,6 @@ SPEC CHECKSUMS:
   ReactCommon: 4d0da92a5eb8da86c08e3ec34bd23ab439fb2461
   RNCAsyncStorage: c1bbcf629d7206d1e19310827848b98d68a4cbaf
   RNGestureHandler: 970902e9f2f6308b2a2519ce93108fbc65460933
-  RNReanimated: cfe47a01605948975531401447eabd98d5a54a3c
   RNScreens: c2e3cc506212228c607b4785b315205e28acbf0f
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf

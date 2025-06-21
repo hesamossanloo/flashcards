@@ -10,7 +10,16 @@
   "rules": {
     "react-hooks/exhaustive-deps": "error",
     "@typescript-eslint/no-floating-promises": "error",
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ]
   },
   "settings": {
     "react": {

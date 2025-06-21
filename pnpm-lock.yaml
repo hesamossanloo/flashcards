@@ -41,6 +41,9 @@ importers:
       expo-file-system:
         specifier: ~18.1.10
         version: 18.1.10(expo@53.0.11(@babel/core@7.27.4)(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))
+      expo-linear-gradient:
+        specifier: ~14.1.5
+        version: 14.1.5(expo@53.0.11(@babel/core@7.27.4)(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       expo-sharing:
         specifier: ~13.1.5
         version: 13.1.5(expo@53.0.11(@babel/core@7.27.4)(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))
@@ -59,9 +62,6 @@ importers:
       react-native-paper:
         specifier: ~5.14.4
         version: 5.14.5(react-native-safe-area-context@5.4.1(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
-      react-native-reanimated:
-        specifier: ~3.6.3
-        version: 3.6.3(@babel/core@7.27.4)(@babel/plugin-proposal-nullish-coalescing-operator@7.18.6(@babel/core@7.27.4))(@babel/plugin-proposal-optional-chaining@7.21.0(@babel/core@7.27.4))(@babel/plugin-transform-arrow-functions@7.27.1(@babel/core@7.27.4))(@babel/plugin-transform-shorthand-properties@7.27.1(@babel/core@7.27.4))(@babel/plugin-transform-template-literals@7.27.1(@babel/core@7.27.4))(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       react-native-safe-area-context:
         specifier: 5.4.1
         version: 5.4.1(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -252,20 +252,6 @@ packages:
   '@babel/plugin-proposal-export-default-from@7.27.1':
     resolution: {integrity: sha512-hjlsMBl1aJc5lp8MoCDEZCiYzlgdRAShOjAfRw6X+GlpLpUPU7c3XNLsKFZbQk/1cRzBlJ7CXg3xJAJMrFa1Uw==}
     engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-proposal-nullish-coalescing-operator@7.18.6':
-    resolution: {integrity: sha512-wQxQzxYeJqHcfppzBDnm1yAY0jSRkUXR2z8RePZYrKwMKgMlE8+Z6LUno+bd6LvbGh8Gltvy74+9pIYkr+XkKA==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-proposal-optional-chaining@7.21.0':
-    resolution: {integrity: sha512-p4zeefM72gpmEe2fkUr/OnOXpWEf8nAgk7ZYVqqfFiyIG7oFfVZcCrU64hWn5xp4tQ9LkV4bTIa5rD0KANpKNA==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -491,12 +477,6 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
-  '@babel/plugin-transform-object-assign@7.27.1':
-    resolution: {integrity: sha512-LP6tsnirA6iy13uBKiYgjJsfQrodmlSrpZModtlo1Vk8sOO68gfo7dfA9TGJyEgxTiO7czK4EGZm8FJEZtk4kQ==}
-    engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
   '@babel/plugin-transform-object-rest-spread@7.27.3':
     resolution: {integrity: sha512-7ZZtznF9g4l2JCImCo5LNKFHB5eXnN39lLtLY5Tg+VkR0jwOt7TBciMckuiQIOIW7L5tkQOCh3bVGYeXgMx52Q==}
     engines: {node: '>=6.9.0'}
@@ -595,12 +575,6 @@ packages:
 
   '@babel/plugin-transform-sticky-regex@7.27.1':
     resolution: {integrity: sha512-lhInBO5bi/Kowe2/aLdBAawijx+q1pQzicSgnkB6dUPc1+RC8QmJHKf2OjvU+NZWitguJHEaEmbV6VWEouT58g==}
-    engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-transform-template-literals@7.27.1':
-    resolution: {integrity: sha512-fBJKiV7F2DxZUkg5EtHKXQdbsbURW3DZKQUWphDum0uRP6eHGGa/He9mc0mypL680pb+e/lDIthRohlv8NCHkg==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -1814,6 +1788,13 @@ packages:
       expo: '*'
       react: '*'
 
+  expo-linear-gradient@14.1.5:
+    resolution: {integrity: sha512-BSN3MkSGLZoHMduEnAgfhoj3xqcDWaoICgIr4cIYEx1GcHfKMhzA/O4mpZJ/WC27BP1rnAqoKfbclk1eA70ndQ==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
+
   expo-manifests@0.16.5:
     resolution: {integrity: sha512-zLUeJogn2C7qOE75Zz7jcmJorMfIbSRR35ctspN0OK/Hq/+PAAptA8p9jNVC8xp/91uP9uI8f3xPhh+A11eR2A==}
     peerDependencies:
@@ -2923,18 +2904,6 @@ packages:
       react-native: '*'
       react-native-safe-area-context: '*'
 
-  react-native-reanimated@3.6.3:
-    resolution: {integrity: sha512-2KkkPozoIvDbJcHuf8qeyoLROXQxizSi+2CTCkuNVkVZOxxY4B0Omvgq61aOQhSZUh/649x1YHoAaTyGMGDJUw==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-      '@babel/plugin-proposal-nullish-coalescing-operator': ^7.0.0-0
-      '@babel/plugin-proposal-optional-chaining': ^7.0.0-0
-      '@babel/plugin-transform-arrow-functions': ^7.0.0-0
-      '@babel/plugin-transform-shorthand-properties': ^7.0.0-0
-      '@babel/plugin-transform-template-literals': ^7.0.0-0
-      react: '*'
-      react-native: '*'
-
   react-native-safe-area-context@5.4.1:
     resolution: {integrity: sha512-x+g3NblZ9jof8y+XkVvaGlpMrSlixhrJJ33BRzhTAKUKctQVecO1heSXmzxc5UdjvGYBKS6kPZVUw2b8NxHcPg==}
     peerDependencies:
@@ -3790,21 +3759,6 @@ snapshots:
       '@babel/core': 7.27.4
       '@babel/helper-plugin-utils': 7.27.1
 
-  '@babel/plugin-proposal-nullish-coalescing-operator@7.18.6(@babel/core@7.27.4)':
-    dependencies:
-      '@babel/core': 7.27.4
-      '@babel/helper-plugin-utils': 7.27.1
-      '@babel/plugin-syntax-nullish-coalescing-operator': 7.8.3(@babel/core@7.27.4)
-
-  '@babel/plugin-proposal-optional-chaining@7.21.0(@babel/core@7.27.4)':
-    dependencies:
-      '@babel/core': 7.27.4
-      '@babel/helper-plugin-utils': 7.27.1
-      '@babel/helper-skip-transparent-expression-wrappers': 7.27.1
-      '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.27.4)
-    transitivePeerDependencies:
-      - supports-color
-
   '@babel/plugin-syntax-async-generators@7.8.4(@babel/core@7.27.4)':
     dependencies:
       '@babel/core': 7.27.4
@@ -4031,11 +3985,6 @@ snapshots:
       '@babel/core': 7.27.4
       '@babel/helper-plugin-utils': 7.27.1
 
-  '@babel/plugin-transform-object-assign@7.27.1(@babel/core@7.27.4)':
-    dependencies:
-      '@babel/core': 7.27.4
-      '@babel/helper-plugin-utils': 7.27.1
-
   '@babel/plugin-transform-object-rest-spread@7.27.3(@babel/core@7.27.4)':
     dependencies:
       '@babel/core': 7.27.4
@@ -4149,11 +4098,6 @@ snapshots:
       - supports-color
 
   '@babel/plugin-transform-sticky-regex@7.27.1(@babel/core@7.27.4)':
-    dependencies:
-      '@babel/core': 7.27.4
-      '@babel/helper-plugin-utils': 7.27.1
-
-  '@babel/plugin-transform-template-literals@7.27.1(@babel/core@7.27.4)':
     dependencies:
       '@babel/core': 7.27.4
       '@babel/helper-plugin-utils': 7.27.1
@@ -5910,6 +5854,12 @@ snapshots:
       expo: 53.0.11(@babel/core@7.27.4)(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       react: 19.0.0
 
+  expo-linear-gradient@14.1.5(expo@53.0.11(@babel/core@7.27.4)(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
+    dependencies:
+      expo: 53.0.11(@babel/core@7.27.4)(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      react: 19.0.0
+      react-native: 0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0)
+
   expo-manifests@0.16.5(expo@53.0.11(@babel/core@7.27.4)(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)):
     dependencies:
       '@expo/config': 11.0.10
@@ -7141,23 +7091,6 @@ snapshots:
       react-native: 0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0)
       react-native-safe-area-context: 5.4.1(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       use-latest-callback: 0.2.4(react@19.0.0)
-
-  react-native-reanimated@3.6.3(@babel/core@7.27.4)(@babel/plugin-proposal-nullish-coalescing-operator@7.18.6(@babel/core@7.27.4))(@babel/plugin-proposal-optional-chaining@7.21.0(@babel/core@7.27.4))(@babel/plugin-transform-arrow-functions@7.27.1(@babel/core@7.27.4))(@babel/plugin-transform-shorthand-properties@7.27.1(@babel/core@7.27.4))(@babel/plugin-transform-template-literals@7.27.1(@babel/core@7.27.4))(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
-    dependencies:
-      '@babel/core': 7.27.4
-      '@babel/plugin-proposal-nullish-coalescing-operator': 7.18.6(@babel/core@7.27.4)
-      '@babel/plugin-proposal-optional-chaining': 7.21.0(@babel/core@7.27.4)
-      '@babel/plugin-transform-arrow-functions': 7.27.1(@babel/core@7.27.4)
-      '@babel/plugin-transform-object-assign': 7.27.1(@babel/core@7.27.4)
-      '@babel/plugin-transform-shorthand-properties': 7.27.1(@babel/core@7.27.4)
-      '@babel/plugin-transform-template-literals': 7.27.1(@babel/core@7.27.4)
-      '@babel/preset-typescript': 7.27.1(@babel/core@7.27.4)
-      convert-source-map: 2.0.0
-      invariant: 2.2.4
-      react: 19.0.0
-      react-native: 0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0)
-    transitivePeerDependencies:
-      - supports-color
 
   react-native-safe-area-context@5.4.1(react-native@0.79.2(@babel/core@7.27.4)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:

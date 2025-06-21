@@ -1,17 +1,59 @@
-import { useState } from 'react';
-import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { Flashcard } from '../types';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRef, useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  PanGestureHandler,
+  State,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { theme } from "../assets/themes/theme";
+import { Flashcard } from "../types";
 
 interface FlashCardProps {
   card: Flashcard;
   onFlip?: () => void;
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
 }
 
-export default function FlashCard({ card, onFlip }: FlashCardProps) {
+const { width, height } = Dimensions.get("window");
+const cardWidth = width - 48; // 24px padding on each side
+const cardHeight = height * 0.4; // 40% of screen height
+
+export default function FlashCard({
+  card,
+  onFlip,
+  onSwipeLeft,
+  onSwipeRight,
+}: FlashCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [flipAnim] = useState(new Animated.Value(0));
+  const [scaleAnim] = useState(new Animated.Value(1));
+  const [translateX] = useState(new Animated.Value(0));
+  const [rotateAnim] = useState(new Animated.Value(0));
+
+  const panRef = useRef(null);
 
   const flipCard = () => {
+    // Add a small scale animation for feedback
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     Animated.spring(flipAnim, {
       toValue: isFlipped ? 0 : 180,
       friction: 8,
@@ -25,63 +67,191 @@ export default function FlashCard({ card, onFlip }: FlashCardProps) {
 
   const frontInterpolate = flipAnim.interpolate({
     inputRange: [0, 180],
-    outputRange: ['0deg', '180deg'],
+    outputRange: ["0deg", "180deg"],
   });
 
   const backInterpolate = flipAnim.interpolate({
     inputRange: [0, 180],
-    outputRange: ['180deg', '360deg'],
+    outputRange: ["180deg", "360deg"],
   });
 
   const frontAnimatedStyle = {
-    transform: [{ rotateY: frontInterpolate }],
+    transform: [{ rotateY: frontInterpolate }, { scale: scaleAnim }],
   };
 
   const backAnimatedStyle = {
-    transform: [{ rotateY: backInterpolate }],
+    transform: [{ rotateY: backInterpolate }, { scale: scaleAnim }],
+  };
+
+  const cardContainerStyle = {
+    transform: [{ translateX }, { rotate: rotateAnim }],
+  };
+
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.state === State.END) {
+      const { translationX, velocityX } = event.nativeEvent;
+
+      if (
+        Math.abs(translationX) > cardWidth * 0.3 ||
+        Math.abs(velocityX) > 500
+      ) {
+        // Swipe threshold met
+        const toValue = translationX > 0 ? cardWidth * 1.5 : -cardWidth * 1.5;
+
+        Animated.timing(translateX, {
+          toValue,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          // Reset position and call appropriate callback
+          translateX.setValue(0);
+          if (translationX > 0) {
+            onSwipeRight?.();
+          } else {
+            onSwipeLeft?.();
+          }
+        });
+      } else {
+        // Return to center
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    }
   };
 
   return (
-    <TouchableOpacity onPress={flipCard} activeOpacity={1}>
-      <Animated.View style={[styles.card, frontAnimatedStyle]}>
-        <Text style={styles.text}>{card.front}</Text>
+    <PanGestureHandler
+      ref={panRef}
+      onGestureEvent={onGestureEvent}
+      onHandlerStateChange={onHandlerStateChange}
+    >
+      <Animated.View style={[styles.container, cardContainerStyle]}>
+        <TouchableOpacity onPress={flipCard} activeOpacity={0.9}>
+          {/* Front of card */}
+          <Animated.View
+            style={[styles.card, styles.cardFront, frontAnimatedStyle]}
+          >
+            <LinearGradient
+              colors={[theme.colors.gradientStart, theme.colors.gradientEnd]}
+              style={styles.gradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.cardContent}>
+                <MaterialCommunityIcons
+                  name="lightbulb-outline"
+                  size={24}
+                  color="rgba(255,255,255,0.7)"
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardText}>{card.front}</Text>
+                <View style={styles.flipHint}>
+                  <MaterialCommunityIcons
+                    name="rotate-3d-variant"
+                    size={16}
+                    color="rgba(255,255,255,0.6)"
+                  />
+                  <Text style={styles.flipHintText}>Tap to flip</Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+
+          {/* Back of card */}
+          <Animated.View
+            style={[styles.card, styles.cardBack, backAnimatedStyle]}
+          >
+            <LinearGradient
+              colors={[theme.colors.secondary, theme.colors.tertiary]}
+              style={styles.gradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.cardContent}>
+                <MaterialCommunityIcons
+                  name="check-circle-outline"
+                  size={24}
+                  color="rgba(255,255,255,0.7)"
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardText}>{card.back}</Text>
+                <View style={styles.flipHint}>
+                  <MaterialCommunityIcons
+                    name="rotate-3d-variant"
+                    size={16}
+                    color="rgba(255,255,255,0.6)"
+                  />
+                  <Text style={styles.flipHintText}>Tap to flip back</Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        </TouchableOpacity>
       </Animated.View>
-      <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
-        <Text style={styles.text}>{card.back}</Text>
-      </Animated.View>
-    </TouchableOpacity>
+    </PanGestureHandler>
   );
 }
 
-const { width } = Dimensions.get('window');
-const cardWidth = width - 40; // 20px padding on each side
-
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   card: {
     width: cardWidth,
-    height: 200,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    backfaceVisibility: 'hidden',
+    height: cardHeight,
+    borderRadius: 20,
+    ...theme.shadows.large,
+    backfaceVisibility: "hidden",
+  },
+  cardFront: {
+    position: "absolute",
   },
   cardBack: {
-    backgroundColor: '#f8f8f8',
-    position: 'absolute',
-    top: 0,
+    position: "absolute",
   },
-  text: {
-    fontSize: 20,
-    textAlign: 'center',
+  gradient: {
+    flex: 1,
+    borderRadius: 20,
+    padding: theme.spacing.lg,
   },
-}); 
+  cardContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardIcon: {
+    marginBottom: theme.spacing.md,
+  },
+  cardText: {
+    fontSize: 24,
+    fontWeight: "600",
+    textAlign: "center",
+    color: "#ffffff",
+    lineHeight: 32,
+    marginBottom: theme.spacing.lg,
+  },
+  flipHint: {
+    position: "absolute",
+    bottom: theme.spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: 20,
+  },
+  flipHintText: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 12,
+    marginLeft: theme.spacing.xs,
+    fontWeight: "500",
+  },
+});
