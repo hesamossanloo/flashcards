@@ -139,8 +139,8 @@ export const SwipeableCard: React.FC<Props> = ({
       onPanResponderGrant: () => {
         setIsPanning(true);
         position.setOffset({
-          x: position.x._value,
-          y: position.y._value,
+          x: position.x.__getValue(),
+          y: position.y.__getValue(),
         });
         position.setValue({ x: 0, y: 0 });
       },
@@ -189,10 +189,7 @@ export const SwipeableCard: React.FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={StyleSheet.absoluteFill}
-      >
+      <Animated.View {...panResponder.panHandlers} style={styles.container}>
         {/* Wrong indicator */}
         <Animated.View
           style={[
