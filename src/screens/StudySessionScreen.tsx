@@ -231,6 +231,23 @@ const StudySessionScreen: React.FC = () => {
             (review) => review.result === StudyResult.Incorrect
           ).length;
 
+          // --- FIX: Recalculate and save deck stats ---
+          const deck = await storage.getDeck(deckId);
+          if (deck) {
+            const cardsInDeck = await storage.getCardsForDeck(deckId);
+            const updatedDeck = {
+              ...deck,
+              totalCards: cardsInDeck.length,
+              masteredCards: cardsInDeck.filter((c) => c.level >= 5).length,
+              learningCards: cardsInDeck.filter(
+                (c) => c.level > 0 && c.level < 5
+              ).length,
+              updatedAt: new Date(),
+            };
+            await storage.saveDeck(updatedDeck);
+          }
+          // --- END FIX ---
+
           console.log("Final stats calculation:", {
             totalCards: cards.length,
             correctCount,

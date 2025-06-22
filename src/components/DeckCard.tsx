@@ -11,6 +11,7 @@ interface DeckCardProps {
   onPress: () => void;
   onLongPress?: () => void;
   sharpLeft?: boolean;
+  reviewedCards: number;
 }
 
 const { width } = Dimensions.get("window");
@@ -21,31 +22,25 @@ export default function DeckCard({
   onPress,
   onLongPress,
   sharpLeft = false,
+  reviewedCards,
 }: DeckCardProps) {
-  const progress =
-    deck.totalCards > 0 ? deck.masteredCards / deck.totalCards : 0;
-  const learningProgress =
-    deck.totalCards > 0 ? deck.learningCards / deck.totalCards : 0;
+  // Progress: percentage of cards reviewed
+  const progress = deck.totalCards > 0 ? reviewedCards / deck.totalCards : 0;
 
-  const getProgressColor = () => {
-    if (progress >= 0.8) return theme.colors.success;
-    if (progress >= 0.5) return theme.colors.warning;
-    return theme.colors.primary;
-  };
-
-  const getDeckIcon = () => {
-    if (deck.totalCards === 0) return "cards-outline";
-    if (progress >= 0.8) return "trophy-outline";
-    if (progress >= 0.5) return "star-outline";
-    return "book-open-variant";
-  };
-
+  // Gradient color logic
   const getDeckGradient = (): [string, string] => {
     if (deck.totalCards === 0)
       return [theme.colors.surfaceVariant, theme.colors.surfaceVariant];
-    if (progress >= 0.8) return [theme.colors.success, "#059669"];
-    if (progress >= 0.5) return [theme.colors.warning, "#d97706"];
+    if (progress === 0) return ["#a78bfa", "#7c3aed"]; // purple gradient
+    if (progress > 0 && progress < 1) return ["#fb923c", "#f59e42"]; // orange gradient
+    if (progress === 1) return [theme.colors.success, "#059669"]; // green gradient
     return [theme.colors.primary, theme.colors.secondary];
+  };
+
+  // Use a single neutral icon
+  const getDeckIcon = () => {
+    if (deck.totalCards === 0) return "cards-outline";
+    return "book-open-variant";
   };
 
   return (
@@ -76,14 +71,6 @@ export default function DeckCard({
                 </Text>
                 <Text style={styles.subtitle}>{deck.totalCards} cards</Text>
               </View>
-              <View style={styles.statsContainer}>
-                <Text style={styles.statsText}>
-                  {deck.masteredCards} mastered
-                </Text>
-                <Text style={styles.statsText}>
-                  {deck.learningCards} learning
-                </Text>
-              </View>
             </View>
 
             {/* Progress Section */}
@@ -100,35 +87,6 @@ export default function DeckCard({
                   color="#ffffff"
                   style={styles.progressBar}
                 />
-                <View style={styles.progressDetails}>
-                  <View style={styles.progressItem}>
-                    <View
-                      style={[
-                        styles.progressDot,
-                        { backgroundColor: theme.colors.success },
-                      ]}
-                    />
-                    <Text style={styles.progressText}>Mastered</Text>
-                  </View>
-                  <View style={styles.progressItem}>
-                    <View
-                      style={[
-                        styles.progressDot,
-                        { backgroundColor: theme.colors.warning },
-                      ]}
-                    />
-                    <Text style={styles.progressText}>Learning</Text>
-                  </View>
-                  <View style={styles.progressItem}>
-                    <View
-                      style={[
-                        styles.progressDot,
-                        { backgroundColor: theme.colors.surfaceVariant },
-                      ]}
-                    />
-                    <Text style={styles.progressText}>New</Text>
-                  </View>
-                </View>
               </View>
             )}
 
@@ -194,14 +152,6 @@ const styles = StyleSheet.create({
     ...theme.typography.bodySmall,
     color: "rgba(255,255,255,0.8)",
   },
-  statsContainer: {
-    alignItems: "flex-end",
-  },
-  statsText: {
-    ...theme.typography.caption,
-    color: "rgba(255,255,255,0.8)",
-    marginBottom: theme.spacing.xs,
-  },
   progressSection: {
     marginBottom: theme.spacing.md,
   },
@@ -226,24 +176,6 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: "rgba(255,255,255,0.3)",
     marginBottom: theme.spacing.sm,
-  },
-  progressDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  progressItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: theme.spacing.xs,
-  },
-  progressText: {
-    ...theme.typography.caption,
-    color: "rgba(255,255,255,0.8)",
   },
   emptyState: {
     alignItems: "center",

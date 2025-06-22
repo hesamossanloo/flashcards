@@ -68,6 +68,7 @@ export default function DecksScreen() {
             learningCards: cards.filter(
               (card) => card.level > 0 && card.level < 5
             ).length,
+            reviewedCards: cards.filter((card) => !!card.lastReviewed).length,
             updatedAt: new Date(),
           };
         })
@@ -233,6 +234,7 @@ export default function DecksScreen() {
                   deck={deck}
                   onPress={() => {}}
                   sharpLeft={!!swipedDecks[deck.id]}
+                  reviewedCards={deck.reviewedCards}
                 />
               </Animated.View>
             </GestureDetector>
