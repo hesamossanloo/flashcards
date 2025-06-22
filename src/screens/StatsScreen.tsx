@@ -229,7 +229,7 @@ const StatsScreen: React.FC = () => {
         setIsLoading(true);
         resetStats(); // Reset stats before loading new data
 
-        const [allCards, allSessions, allDecks] = await Promise.all([
+        const [freshCards, freshSessions, freshDecks] = await Promise.all([
           storage.getAllCards(),
           storage.getAllSessions(),
           storage.getAllDecks(),
@@ -238,13 +238,15 @@ const StatsScreen: React.FC = () => {
         if (!isMounted) return;
 
         // Calculate overall stats
-        const masteredCards = allCards.filter((card) => card.level >= 5).length;
-        const learningCards = allCards.filter(
+        const masteredCards = freshCards.filter(
+          (card) => card.level >= 5
+        ).length;
+        const learningCards = freshCards.filter(
           (card) => card.level > 0 && card.level < 5
         ).length;
 
         // Calculate total accuracy
-        const totalCorrect = allSessions.reduce(
+        const totalCorrect = freshSessions.reduce(
           (sum, session) =>
             sum +
             session.cardsReviewed.filter(
@@ -252,7 +254,7 @@ const StatsScreen: React.FC = () => {
             ).length,
           0
         );
-        const totalReviewed = allSessions.reduce(
+        const totalReviewed = freshSessions.reduce(
           (sum, session) => sum + session.cardsReviewed.length,
           0
         );
@@ -260,7 +262,7 @@ const StatsScreen: React.FC = () => {
           totalReviewed > 0 ? (totalCorrect / totalReviewed) * 100 : 0;
 
         // Calculate total study time
-        const totalStudyTime = allSessions.reduce((sum, session) => {
+        const totalStudyTime = freshSessions.reduce((sum, session) => {
           if (!session.endTime) return sum;
           return (
             sum + (session.endTime.getTime() - session.startTime.getTime())
@@ -268,23 +270,23 @@ const StatsScreen: React.FC = () => {
         }, 0);
 
         // Get recent sessions (last 5)
-        const recentSessions = allSessions
+        const recentSessions = freshSessions
           .filter((session) => session.endTime)
           .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
           .slice(0, 5);
 
         // Calculate streak
-        const streak = calculateStreak(allSessions);
+        const streak = calculateStreak(freshSessions);
 
         if (isMounted) {
           setStats({
-            totalCards: allCards.length,
+            totalCards: freshCards.length,
             masteredCards,
             learningCards,
             totalAccuracy,
             totalStudyTime,
             recentSessions,
-            decks: allDecks,
+            decks: freshDecks,
             streak,
           });
         }
@@ -389,21 +391,39 @@ const StatsScreen: React.FC = () => {
           onPress: async () => {
             try {
               await storage.clearAllSessions();
-              await storage.resetAllCardLevels();
+              // Reset all cards' correct/incorrect/lastReviewed
+              const allCards = await storage.getAllCards();
+              const resetCards = allCards.map((card) => ({
+                ...card,
+                correctCount: 0,
+                incorrectCount: 0,
+                lastReviewed: undefined,
+              }));
+              await Promise.all(
+                resetCards.map((card) => storage.saveCard(card))
+              );
+              // Reset all decks' reviewedCards
+              const allDecks = await storage.getAllDecks();
+              const resetDecks = allDecks.map((deck) => ({
+                ...deck,
+                reviewedCards: 0,
+                updatedAt: new Date(),
+              }));
+              await Promise.all(
+                resetDecks.map((deck) => storage.saveDeck(deck))
+              );
               setIsLoading(true);
-              const [allCards, allSessions, allDecks] = await Promise.all([
-                storage.getAllCards(),
-                storage.getAllSessions(),
-                storage.getAllDecks(),
-              ]);
+              const [freshCards, freshSessions, freshDecks] = await Promise.all(
+                [
+                  storage.getAllCards(),
+                  storage.getAllSessions(),
+                  storage.getAllDecks(),
+                ]
+              );
               // Calculate overall stats
-              const masteredCards = allCards.filter(
-                (card) => card.level >= 5
-              ).length;
-              const learningCards = allCards.filter(
-                (card) => card.level > 0 && card.level < 5
-              ).length;
-              const totalCorrect = allSessions.reduce(
+              const masteredCards = 0;
+              const learningCards = 0;
+              const totalCorrect = freshSessions.reduce(
                 (sum, session) =>
                   sum +
                   session.cardsReviewed.filter(
@@ -411,32 +431,32 @@ const StatsScreen: React.FC = () => {
                   ).length,
                 0
               );
-              const totalReviewed = allSessions.reduce(
+              const totalReviewed = freshSessions.reduce(
                 (sum, session) => sum + session.cardsReviewed.length,
                 0
               );
               const totalAccuracy =
                 totalReviewed > 0 ? (totalCorrect / totalReviewed) * 100 : 0;
-              const totalStudyTime = allSessions.reduce((sum, session) => {
+              const totalStudyTime = freshSessions.reduce((sum, session) => {
                 if (!session.endTime) return sum;
                 return (
                   sum +
                   (session.endTime.getTime() - session.startTime.getTime())
                 );
               }, 0);
-              const recentSessions = allSessions
+              const recentSessions = freshSessions
                 .filter((session) => session.endTime)
                 .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
                 .slice(0, 5);
-              const streak = calculateStreak(allSessions);
+              const streak = calculateStreak(freshSessions);
               setStats({
-                totalCards: allCards.length,
+                totalCards: freshCards.length,
                 masteredCards,
                 learningCards,
                 totalAccuracy,
                 totalStudyTime,
                 recentSessions,
-                decks: allDecks,
+                decks: freshDecks,
                 streak,
               });
               setIsLoading(false);
