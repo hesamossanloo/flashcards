@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useContext } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../hooks/useTheme";
+import { ThemeContext } from "../providers/ThemeProvider";
 import { RootStackParamList } from "../types";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -17,6 +18,58 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function SettingsScreen() {
   const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
+  const { mode, setMode } = useContext(ThemeContext);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 16,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginBottom: 12,
+    },
+    button: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+      borderRadius: 12,
+    },
+    buttonContent: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    buttonTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      marginBottom: 4,
+    },
+    buttonDescription: {
+      fontSize: 14,
+    },
+    themeButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 18,
+      borderRadius: 8,
+      backgroundColor: theme.colors.surface,
+      marginRight: 8,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    themeButtonActive: {
+      backgroundColor: theme.colors.primary,
+    },
+    themeButtonText: {
+      color: theme.colors.text,
+      fontWeight: "600",
+    },
+  });
 
   return (
     <ScrollView
@@ -56,41 +109,38 @@ export default function SettingsScreen() {
           />
         </TouchableOpacity>
       </View>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        Theme
+      </Text>
+      <View style={{ flexDirection: "row", marginBottom: 16 }}>
+        <TouchableOpacity
+          style={[
+            styles.themeButton,
+            mode === "system" && styles.themeButtonActive,
+          ]}
+          onPress={() => setMode("system")}
+        >
+          <Text style={styles.themeButtonText}>System</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.themeButton,
+            mode === "light" && styles.themeButtonActive,
+          ]}
+          onPress={() => setMode("light")}
+        >
+          <Text style={styles.themeButtonText}>Light</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.themeButton,
+            mode === "dark" && styles.themeButtonActive,
+          ]}
+          onPress={() => setMode("dark")}
+        >
+          <Text style={styles.themeButtonText}>Dark</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 12,
-  },
-  buttonContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  buttonTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  buttonDescription: {
-    fontSize: 14,
-  },
-});

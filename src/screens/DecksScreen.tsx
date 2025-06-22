@@ -18,9 +18,9 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
-import { theme } from "../assets/themes/theme";
 import CreateDeckModal from "../components/CreateDeckModal";
 import DeckCard from "../components/DeckCard";
+import { useTheme } from "../hooks/useTheme";
 import { StorageService } from "../services/storage";
 import { Deck, RootStackParamList } from "../types";
 import { generateUUID } from "../utils/uuid";
@@ -33,8 +33,8 @@ export default function DecksScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [swipedDecks, setSwipedDecks] = useState<{ [id: string]: boolean }>({});
-
   const animationMap = useRef(new Map<string, Animated.Value>()).current;
+  const theme = useTheme();
 
   const getAnimationValue = (deckId: string) => {
     if (!animationMap.has(deckId)) {
@@ -240,6 +240,63 @@ export default function DecksScreen() {
     [animationMap, navigation, handleDeleteDeck, swipedDecks]
   );
 
+  // Move styles here so theme is in scope
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    listContainer: {
+      padding: theme.spacing.lg,
+      paddingBottom: 80, // Space for FAB
+    },
+    fab: {
+      position: "absolute",
+      right: theme.spacing.lg,
+      bottom: theme.spacing.lg,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      justifyContent: "center",
+      alignItems: "center",
+      ...theme.shadows.large,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingVertical: theme.spacing.xxl,
+    },
+    emptyText: {
+      marginTop: theme.spacing.lg,
+      ...theme.typography.body,
+      textAlign: "center",
+      color: theme.colors.textSecondary,
+    },
+    deckItemContainer: {
+      position: "relative",
+      justifyContent: "center",
+      alignItems: "stretch", // Ensure children fill the same height
+      marginBottom: theme.spacing.lg,
+    },
+    deleteButton: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      height: "100%",
+      backgroundColor: theme.colors.error,
+      justifyContent: "center",
+      alignItems: "center",
+      borderTopLeftRadius: theme.roundness,
+      borderBottomLeftRadius: theme.roundness,
+      zIndex: 0,
+    },
+    deleteButtonText: {
+      color: "#ffffff",
+      marginTop: theme.spacing.xs,
+      fontSize: 12,
+    },
+  });
+
   return (
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -288,59 +345,3 @@ export default function DecksScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContainer: {
-    padding: theme.spacing.lg,
-    paddingBottom: 80, // Space for FAB
-  },
-  fab: {
-    position: "absolute",
-    right: theme.spacing.lg,
-    bottom: theme.spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    ...theme.shadows.large,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: theme.spacing.xxl,
-  },
-  emptyText: {
-    marginTop: theme.spacing.lg,
-    ...theme.typography.body,
-    textAlign: "center",
-    color: theme.colors.textSecondary,
-  },
-  deckItemContainer: {
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "stretch", // Ensure children fill the same height
-    marginBottom: theme.spacing.lg,
-  },
-  deleteButton: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    height: "100%",
-    backgroundColor: theme.colors.error,
-    justifyContent: "center",
-    alignItems: "center",
-    borderTopLeftRadius: theme.roundness,
-    borderBottomLeftRadius: theme.roundness,
-    zIndex: 0,
-  },
-  deleteButtonText: {
-    color: "#ffffff",
-    marginTop: theme.spacing.xs,
-    fontSize: 12,
-  },
-});
