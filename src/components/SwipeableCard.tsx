@@ -139,8 +139,8 @@ export const SwipeableCard: React.FC<Props> = ({
       onPanResponderGrant: () => {
         setIsPanning(true);
         position.setOffset({
-          x: position.x.__getValue(),
-          y: position.y.__getValue(),
+          x: position.__getValue().x,
+          y: position.__getValue().y,
         });
         position.setValue({ x: 0, y: 0 });
       },
