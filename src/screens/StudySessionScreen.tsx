@@ -67,24 +67,16 @@ const StudySessionScreen: React.FC = () => {
 
   // Load cards
   useEffect(() => {
-    const loadCards = async () => {
-      try {
-        if (
-          route.params &&
-          "cards" in route.params &&
-          Array.isArray(route.params.cards)
-        ) {
-          setCards(route.params.cards);
-        } else {
-          const allCards = await storage.getAllCards();
-          const deckCards = allCards.filter((card) => card.deckId === deckId);
-          setCards(deckCards);
-        }
-      } catch (error) {
-        console.error("Failed to load cards:", error);
-      }
-    };
-    loadCards();
+    if (route.params && Array.isArray((route.params as any).cards)) {
+      setCards((route.params as any).cards);
+    } else {
+      const loadCards = async () => {
+        const allCards = await storage.getAllCards();
+        const deckCards = allCards.filter((card) => card.deckId === deckId);
+        setCards(deckCards);
+      };
+      loadCards();
+    }
   }, [deckId, storage, route.params]);
 
   // Flip card
@@ -204,10 +196,9 @@ const StudySessionScreen: React.FC = () => {
           console.log("Calculated stats:", stats);
 
           navigation.reset({
-            index: 0,
+            index: 1,
             routes: [
-              { name: "Main" },
-              { name: "DeckDetail", params: { deckId } },
+              { name: "Main", params: { screen: "Study" } },
               { name: "Stats", params: { sessionId: session.id, stats } },
             ],
           });
