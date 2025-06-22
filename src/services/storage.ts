@@ -353,25 +353,6 @@ export class StorageService {
     }
   }
 
-  // Reset all card levels to 0
-  async resetAllCardLevels(): Promise<void> {
-    try {
-      const allCards = await this.getAllCards();
-      const updatedCards = allCards.map(card => ({
-        ...card,
-        level: 0,
-        correctCount: 0,
-        incorrectCount: 0
-      }));
-      const serializedCards = JSON.stringify(updatedCards);
-      await AsyncStorage.setItem(STORAGE_KEYS.CARDS, serializedCards);
-      this.clearCache(); // Clear cache to ensure fresh data is loaded
-    } catch (error) {
-      console.error('Failed to reset card levels:', error);
-      throw error;
-    }
-  }
-
   // Create a backup of all data
   async createBackup(): Promise<void> {
     try {

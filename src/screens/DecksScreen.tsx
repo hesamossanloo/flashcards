@@ -64,10 +64,6 @@ export default function DecksScreen() {
           return {
             ...deck,
             totalCards: cards.length,
-            masteredCards: cards.filter((card) => card.level >= 5).length,
-            learningCards: cards.filter(
-              (card) => card.level > 0 && card.level < 5
-            ).length,
             reviewedCards: cards.filter((card) => !!card.lastReviewed).length,
             updatedAt: new Date(),
           };
@@ -105,8 +101,7 @@ export default function DecksScreen() {
         createdAt: new Date(),
         updatedAt: new Date(),
         totalCards: 0,
-        masteredCards: 0,
-        learningCards: 0,
+        reviewedCards: 0,
         color: theme.colors.primary,
       };
 

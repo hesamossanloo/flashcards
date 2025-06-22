@@ -21,13 +21,7 @@ import {
 import { SwipeableCard } from "../components/SwipeableCard";
 import { useTheme } from "../hooks/useTheme";
 import { StorageService } from "../services/storage";
-import {
-  Card,
-  RootStackParamList,
-  SR_INTERVALS,
-  StudyResult,
-  StudySession,
-} from "../types";
+import { Card, RootStackParamList, StudyResult, StudySession } from "../types";
 
 // Route params type
 type StudySessionRouteParams = {
@@ -75,50 +69,23 @@ const StudySessionScreen: React.FC = () => {
   useEffect(() => {
     const loadCards = async () => {
       try {
-        console.log("Loading cards for deck:", deckId);
-        const allCards = await storage.getAllCards();
-        const deckCards = allCards.filter((card) => card.deckId === deckId);
-        console.log("Found cards:", {
-          totalCards: deckCards.length,
-          cardIds: deckCards.map((c) => c.id),
-        });
-
-        // Sort cards by priority:
-        // 1. Cards that are due for review (nextReviewDate <= now)
-        // 2. New cards (never reviewed)
-        // 3. Recently reviewed cards
-        const now = new Date();
-        const sortedCards = deckCards.sort((a, b) => {
-          // If either card has no nextReviewDate (new card), it goes first
-          if (!a.nextReviewDate) return -1;
-          if (!b.nextReviewDate) return 1;
-
-          // If one card is due and the other isn't
-          const aIsDue = a.nextReviewDate <= now;
-          const bIsDue = b.nextReviewDate <= now;
-          if (aIsDue && !bIsDue) return -1;
-          if (!aIsDue && bIsDue) return 1;
-
-          // If both are due or both are not due, sort by nextReviewDate
-          return a.nextReviewDate.getTime() - b.nextReviewDate.getTime();
-        });
-
-        console.log("Sorted cards:", {
-          totalCards: sortedCards.length,
-          cardIds: sortedCards.map((c) => c.id),
-          order: sortedCards.map((c) => ({
-            id: c.id,
-            nextReview: c.nextReviewDate?.toISOString() || "new",
-          })),
-        });
-
-        setCards(sortedCards);
+        if (
+          route.params &&
+          "cards" in route.params &&
+          Array.isArray(route.params.cards)
+        ) {
+          setCards(route.params.cards);
+        } else {
+          const allCards = await storage.getAllCards();
+          const deckCards = allCards.filter((card) => card.deckId === deckId);
+          setCards(deckCards);
+        }
       } catch (error) {
         console.error("Failed to load cards:", error);
       }
     };
     loadCards();
-  }, [deckId, storage]);
+  }, [deckId, storage, route.params]);
 
   // Flip card
   const flipCard = useCallback(() => {
@@ -176,14 +143,10 @@ const StudySessionScreen: React.FC = () => {
       });
 
       try {
-        // Update card stats and next review date
+        // Update card stats
         const updatedCard = {
           ...card,
           lastReviewed: now,
-          level:
-            result === StudyResult.Correct
-              ? card.level + 1
-              : Math.max(0, card.level - 1),
           correctCount:
             result === StudyResult.Correct
               ? (card.correctCount || 0) + 1
@@ -193,22 +156,7 @@ const StudySessionScreen: React.FC = () => {
               ? (card.incorrectCount || 0) + 1
               : card.incorrectCount || 0,
         };
-
-        // Calculate next review date using spaced repetition
-        const levelKey = `LEVEL_${Math.min(
-          updatedCard.level,
-          7
-        )}` as keyof typeof SR_INTERVALS;
-        const daysToAdd = SR_INTERVALS[levelKey];
-        updatedCard.nextReviewDate = new Date(
-          now.getTime() + daysToAdd * 24 * 60 * 60 * 1000
-        );
-
-        // Save card update
         await storage.saveCard(updatedCard);
-        console.log("Card saved successfully");
-
-        // Update the card in the cards array
         setCards((prevCards) =>
           prevCards.map((c) => (c.id === updatedCard.id ? updatedCard : c))
         );
@@ -233,23 +181,6 @@ const StudySessionScreen: React.FC = () => {
           const incorrectCount = latestSession.cardsReviewed.filter(
             (review) => review.result === StudyResult.Incorrect
           ).length;
-
-          // --- FIX: Recalculate and save deck stats ---
-          const deck = await storage.getDeck(deckId);
-          if (deck) {
-            const cardsInDeck = await storage.getCardsForDeck(deckId);
-            const updatedDeck = {
-              ...deck,
-              totalCards: cardsInDeck.length,
-              masteredCards: cardsInDeck.filter((c) => c.level >= 5).length,
-              learningCards: cardsInDeck.filter(
-                (c) => c.level > 0 && c.level < 5
-              ).length,
-              updatedAt: new Date(),
-            };
-            await storage.saveDeck(updatedDeck);
-          }
-          // --- END FIX ---
 
           console.log("Final stats calculation:", {
             totalCards: cards.length,

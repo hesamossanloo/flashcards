@@ -20,29 +20,50 @@ export default function StudyScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [loading, setLoading] = useState(false);
 
-  // Simple spaced review: cards with lowest level or not reviewed recently
-  const getCardsDueForReview = async () => {
+  const startRandomizedStudy = async () => {
     setLoading(true);
     try {
       const storage = StorageService.getInstance();
       const allCards = await storage.getAllCards();
-      // Example spaced review: cards with level < 5, sorted by last reviewed (or random if not available)
-      const dueCards = allCards
-        .filter((card) => (card.level ?? 0) < 5)
-        .sort((a, b) => {
-          const aTime = a.lastReviewed ? new Date(a.lastReviewed).getTime() : 0;
-          const bTime = b.lastReviewed ? new Date(b.lastReviewed).getTime() : 0;
-          return aTime - bTime;
-        })
-        .slice(0, 20); // Limit to 20 cards per session
-      if (dueCards.length === 0) {
-        Alert.alert("No cards due", "You have no cards due for review!");
+      if (allCards.length === 0) {
+        Alert.alert("No cards", "You have no cards to study!");
         setLoading(false);
         return;
       }
-      navigation.navigate("StudySession", { cards: dueCards });
+      // Shuffle cards
+      const shuffled = allCards.sort(() => Math.random() - 0.5);
+      navigation.navigate("StudySession", { cards: shuffled });
     } catch (error) {
-      Alert.alert("Error", "Failed to load cards for review.");
+      Alert.alert("Error", "Failed to load cards.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startNeverReviewedStudy = async () => {
+    setLoading(true);
+    try {
+      const storage = StorageService.getInstance();
+      const allCards = await storage.getAllCards();
+      const neverReviewed = allCards.filter(
+        (card) =>
+          (!card.lastReviewed || card.lastReviewed === undefined) &&
+          (card.correctCount === 0 || card.correctCount === undefined) &&
+          (card.incorrectCount === 0 || card.incorrectCount === undefined)
+      );
+      if (neverReviewed.length === 0) {
+        Alert.alert(
+          "No new cards",
+          "All cards have been reviewed at least once!"
+        );
+        setLoading(false);
+        return;
+      }
+      // Shuffle never reviewed cards
+      const shuffled = neverReviewed.sort(() => Math.random() - 0.5);
+      navigation.navigate("StudySession", { cards: shuffled });
+    } catch (error) {
+      Alert.alert("Error", "Failed to load cards.");
     } finally {
       setLoading(false);
     }
@@ -55,17 +76,31 @@ export default function StudyScreen() {
       <Text
         style={[styles.text, { color: theme.colors.text, marginBottom: 32 }]}
       >
-        Smart Review
+        Study Options
       </Text>
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: theme.colors.primary }]}
-        onPress={getCardsDueForReview}
+        style={[
+          styles.button,
+          { backgroundColor: theme.colors.primary, marginBottom: 20 },
+        ]}
+        onPress={startRandomizedStudy}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text style={styles.buttonText}>Start Review</Text>
+          <Text style={styles.buttonText}>Randomized Study</Text>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: theme.colors.secondary }]}
+        onPress={startNeverReviewedStudy}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.buttonText}>Study Never Reviewed Cards</Text>
         )}
       </TouchableOpacity>
     </View>

@@ -1,7 +1,7 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import React, { useEffect, useState } from "react";
 import {
   BackHandler,
   KeyboardAvoidingView,
@@ -12,22 +12,22 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useTheme } from '../hooks/useTheme';
-import { StorageService } from '../services/storage';
-import { Card, Deck, RootStackParamList } from '../types';
-import { generateUUID } from '../utils/uuid';
+} from "react-native";
+import { useTheme } from "../hooks/useTheme";
+import { StorageService } from "../services/storage";
+import { Card, Deck, RootStackParamList } from "../types";
+import { generateUUID } from "../utils/uuid";
 
-type Props = NativeStackScreenProps<RootStackParamList, 'AddCard'>;
+type Props = NativeStackScreenProps<RootStackParamList, "AddCard">;
 
 export default function AddCardScreen() {
   const theme = useTheme();
-  const navigation = useNavigation<Props['navigation']>();
-  const route = useRoute<Props['route']>();
+  const navigation = useNavigation<Props["navigation"]>();
+  const route = useRoute<Props["route"]>();
   const storage = StorageService.getInstance();
-  
-  const [front, setFront] = useState('');
-  const [back, setBack] = useState('');
+
+  const [front, setFront] = useState("");
+  const [back, setBack] = useState("");
   const [deck, setDeck] = useState<Deck | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cardsAdded, setCardsAdded] = useState(0);
@@ -40,7 +40,7 @@ export default function AddCardScreen() {
   // Handle back button press
   const handleBackPress = () => {
     if (deck) {
-      navigation.navigate('DeckDetail', { deckId: deck.id });
+      navigation.navigate("DeckDetail", { deckId: deck.id });
       return true;
     }
     return false;
@@ -48,8 +48,11 @@ export default function AddCardScreen() {
 
   // Set up back handler
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    if (Platform.OS === "android") {
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        handleBackPress
+      );
       return () => subscription.remove();
     }
   }, [deck]);
@@ -57,55 +60,58 @@ export default function AddCardScreen() {
   useEffect(() => {
     if (deck) {
       navigation.setOptions({
-        title: isFirstCard ? 'Create First Card' : 'Add Cards',
+        title: isFirstCard ? "Create First Card" : "Add Cards",
         headerLeft: () => (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleBackPress}
             style={styles.headerButton}
           >
             <Text style={{ color: theme.colors.primary }}>Back</Text>
           </TouchableOpacity>
         ),
-        headerRight: () => (
+        headerRight: () =>
           !isFirstCard ? (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleBackPress}
               style={styles.headerButton}
             >
               <Text style={{ color: theme.colors.primary }}>Done</Text>
             </TouchableOpacity>
-          ) : null
-        ),
+          ) : null,
       });
     }
   }, [deck, isFirstCard, navigation, theme.colors.primary]);
 
   const loadDeck = async () => {
     try {
-      console.log('Loading deck with ID:', route.params.deckId);
+      console.log("Loading deck with ID:", route.params.deckId);
       const loadedDeck = await storage.getDeck(route.params.deckId);
-      console.log('Loaded deck:', loadedDeck);
+      console.log("Loaded deck:", loadedDeck);
       if (loadedDeck) {
         setDeck(loadedDeck);
       }
     } catch (error) {
-      console.error('Failed to load deck:', error);
+      console.error("Failed to load deck:", error);
     }
   };
 
   const clearForm = () => {
-    setFront('');
-    setBack('');
+    setFront("");
+    setBack("");
     setIsSubmitting(false);
   };
 
   const handleSubmit = async () => {
     if (!front.trim() || !back.trim() || !deck) {
-      console.log('Validation failed:', { front: front.trim(), back: back.trim(), deck });
+      console.log("Validation failed:", {
+        front: front.trim(),
+        back: back.trim(),
+        deck,
+      });
       return;
     }
 
-    console.log('Starting card submission...');
+    console.log("Starting card submission...");
     setIsSubmitting(true);
     try {
       const newCard: Card = {
@@ -115,19 +121,19 @@ export default function AddCardScreen() {
         back: back.trim(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        level: 0,
         correctCount: 0,
         incorrectCount: 0,
+        lastReviewed: undefined,
         tags: [],
       };
 
-      console.log('Saving new card:', newCard);
+      console.log("Saving new card:", newCard);
       await storage.saveCard(newCard);
-      console.log('Card saved successfully');
+      console.log("Card saved successfully");
 
       // Get current cards to ensure accurate count
       const currentCards = await storage.getCardsForDeck(deck.id);
-      console.log('Current cards in deck:', currentCards.length);
+      console.log("Current cards in deck:", currentCards.length);
 
       // Update deck card count
       const updatedDeck: Deck = {
@@ -135,25 +141,25 @@ export default function AddCardScreen() {
         totalCards: currentCards.length + 1, // Add 1 for the new card
         updatedAt: new Date(),
       };
-      console.log('Updating deck:', updatedDeck);
+      console.log("Updating deck:", updatedDeck);
       await storage.saveDeck(updatedDeck);
-      console.log('Deck updated successfully');
+      console.log("Deck updated successfully");
       setDeck(updatedDeck);
 
       // Increment cards added counter
-      setCardsAdded(prev => prev + 1);
+      setCardsAdded((prev) => prev + 1);
 
       if (isFirstCard) {
-        console.log('First card created, clearing form for next card');
+        console.log("First card created, clearing form for next card");
         clearForm();
         // Set isFirstCard to false since we've added the first card
         navigation.setParams({ isFirstCard: false });
       } else {
-        console.log('Card added, clearing form for next card');
+        console.log("Card added, clearing form for next card");
         clearForm();
       }
     } catch (error) {
-      console.error('Failed to save card:', error);
+      console.error("Failed to save card:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -163,7 +169,7 @@ export default function AddCardScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <ScrollView style={styles.scrollView}>
@@ -175,21 +181,36 @@ export default function AddCardScreen() {
                 size={24}
                 color={theme.colors.primary}
               />
-              <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                Tip: Start with a foundational concept or key term for your deck!
+              <Text
+                style={[styles.tipText, { color: theme.colors.textSecondary }]}
+              >
+                Tip: Start with a foundational concept or key term for your
+                deck!
               </Text>
             </View>
           )}
 
           {!isFirstCard && cardsAdded > 0 && (
-            <View style={[styles.addedContainer, { backgroundColor: theme.colors.surface }]}>
-              <Text style={[styles.addedText, { color: theme.colors.textSecondary }]}>
-                {cardsAdded} card{cardsAdded !== 1 ? 's' : ''} added to deck
+            <View
+              style={[
+                styles.addedContainer,
+                { backgroundColor: theme.colors.surface },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.addedText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                {cardsAdded} card{cardsAdded !== 1 ? "s" : ""} added to deck
               </Text>
             </View>
           )}
 
-          <Text style={[styles.label, { color: theme.colors.text }]}>Front</Text>
+          <Text style={[styles.label, { color: theme.colors.text }]}>
+            Front
+          </Text>
           <TextInput
             style={[
               styles.input,
@@ -200,7 +221,11 @@ export default function AddCardScreen() {
                 borderColor: theme.colors.border,
               },
             ]}
-            placeholder={isFirstCard ? "Enter your first flashcard question or concept" : "Enter the question or concept"}
+            placeholder={
+              isFirstCard
+                ? "Enter your first flashcard question or concept"
+                : "Enter the question or concept"
+            }
             placeholderTextColor={theme.colors.textSecondary}
             value={front}
             onChangeText={setFront}
@@ -220,7 +245,11 @@ export default function AddCardScreen() {
                 borderColor: theme.colors.border,
               },
             ]}
-            placeholder={isFirstCard ? "Enter the answer or explanation for your first card" : "Enter the answer or explanation"}
+            placeholder={
+              isFirstCard
+                ? "Enter the answer or explanation for your first card"
+                : "Enter the answer or explanation"
+            }
             placeholderTextColor={theme.colors.textSecondary}
             value={back}
             onChangeText={setBack}
@@ -232,7 +261,8 @@ export default function AddCardScreen() {
             style={[
               styles.submitButton,
               { backgroundColor: theme.colors.primary },
-              (!front.trim() || !back.trim() || isSubmitting) && styles.buttonDisabled,
+              (!front.trim() || !back.trim() || isSubmitting) &&
+                styles.buttonDisabled,
             ]}
             onPress={handleSubmit}
             disabled={!front.trim() || !back.trim() || isSubmitting}
@@ -258,9 +288,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   tipContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -274,14 +304,14 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   addedText: {
     fontSize: 14,
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   input: {
@@ -297,18 +327,18 @@ const styles = StyleSheet.create({
   submitButton: {
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   headerButton: {
     marginRight: 16,
   },
-}); 
+});
