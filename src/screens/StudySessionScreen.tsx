@@ -11,7 +11,6 @@ import React, {
   useState,
 } from "react";
 import {
-  Alert,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -258,8 +257,24 @@ const StudySessionScreen: React.FC = () => {
     navigation.setOptions({
       title: "Study",
       headerBackTitle: "Back",
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{ marginRight: 16 }}
+        >
+          <Text
+            style={{
+              color: theme.colors.error,
+              fontWeight: "600",
+              fontSize: 16,
+            }}
+          >
+            Exit
+          </Text>
+        </TouchableOpacity>
+      ),
     });
-  }, [navigation]);
+  }, [navigation, theme.colors.error]);
 
   if (cards.length === 0) {
     return (
@@ -289,32 +304,6 @@ const StudySessionScreen: React.FC = () => {
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      {/* Exit button */}
-      <TouchableOpacity
-        style={[styles.exitButton, { backgroundColor: theme.colors.error }]}
-        onPress={() => {
-          Alert.alert(
-            "Exit Study Session",
-            "Are you sure you want to exit? Your progress will be saved.",
-            [
-              {
-                text: "Cancel",
-                style: "cancel",
-              },
-              {
-                text: "Exit",
-                style: "destructive",
-                onPress: () => {
-                  navigation.goBack();
-                },
-              },
-            ]
-          );
-        }}
-      >
-        <MaterialCommunityIcons name="close" size={24} color="white" />
-      </TouchableOpacity>
-
       {/* Progress indicator */}
       <View style={styles.progressContainer}>
         <Text style={[styles.progress, { color: theme.colors.text }]}>
