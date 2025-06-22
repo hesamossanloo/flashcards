@@ -101,7 +101,6 @@ export default function DecksScreen() {
         createdAt: new Date(),
         updatedAt: new Date(),
         totalCards: 0,
-        reviewedCards: 0,
         color: theme.colors.primary,
       };
 

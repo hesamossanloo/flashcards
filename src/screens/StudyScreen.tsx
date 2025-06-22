@@ -1,4 +1,6 @@
+// @ts-ignore
 import { useNavigation } from "@react-navigation/native";
+// @ts-ignore
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState } from "react";
 import {

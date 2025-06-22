@@ -1,5 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+// @ts-ignore
 import { useNavigation } from "@react-navigation/native";
+// @ts-ignore
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useContext } from "react";
 import {
@@ -60,7 +62,7 @@ export default function SettingsScreen() {
       backgroundColor: theme.colors.surface,
       marginRight: 8,
       borderWidth: 1,
-      borderColor: theme.colors.border,
+      borderColor: theme.colors.textSecondary,
     },
     themeButtonActive: {
       backgroundColor: theme.colors.primary,

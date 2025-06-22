@@ -1,3 +1,4 @@
+// @ts-ignore
 import { NavigatorScreenParams } from '@react-navigation/native';
 import { z } from 'zod';
 
