@@ -1,9 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -29,9 +26,6 @@ type StudySessionRouteParams = {
   deckId: string;
 };
 
-// Navigation type
-type StudySessionNavigationProp = NavigationProp<RootStackParamList>;
-
 // Simple UUID generator for React Native
 const generateUUID = () => {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -43,7 +37,8 @@ const generateUUID = () => {
 
 const StudySessionScreen: React.FC = () => {
   const theme = useTheme();
-  const navigation = useNavigation<StudySessionNavigationProp>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const storage = StorageService.getInstance();
   const { deckId } = route.params as StudySessionRouteParams;
@@ -394,6 +389,13 @@ const StudySessionScreen: React.FC = () => {
       <View style={styles.cardContainer}>
         {currentIndex < cards.length ? (
           <SwipeableCard
+            key={
+              cards[currentIndex].id +
+              "-" +
+              cards[currentIndex].correctCount +
+              "-" +
+              cards[currentIndex].incorrectCount
+            }
             card={cards[currentIndex]}
             onSwipeLeft={handleSwipeLeft}
             onSwipeRight={handleSwipeRight}
