@@ -1,7 +1,15 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+// @ts-ignore
 import { useNavigation, useRoute } from "@react-navigation/native";
+// @ts-ignore
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   SafeAreaView,
@@ -323,6 +331,13 @@ const StudySessionScreen: React.FC = () => {
       hasEndTime: session.endTime !== undefined,
     });
   }, [navigation, session]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "Study",
+      headerBackTitle: "Back",
+    });
+  }, [navigation]);
 
   if (cards.length === 0) {
     return (

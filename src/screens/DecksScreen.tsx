@@ -29,7 +29,7 @@ export default function DecksScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const storage = StorageService.getInstance();
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const [decks, setDecks] = useState<(Deck & { reviewedCards: number })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [swipedDecks, setSwipedDecks] = useState<{ [id: string]: boolean }>({});
@@ -168,7 +168,7 @@ export default function DecksScreen() {
   );
 
   const renderDeckItem = useCallback(
-    ({ item: deck }: { item: Deck }) => {
+    ({ item: deck }: { item: Deck & { reviewedCards: number } }) => {
       const translateX = getAnimationValue(deck.id);
       const deleteButtonWidth = 100;
 

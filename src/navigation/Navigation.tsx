@@ -109,7 +109,7 @@ export default function Navigation() {
           name="StudySession"
           component={StudySessionScreen}
           options={{
-            headerShown: false,
+            headerShown: true,
             gestureEnabled: false,
           }}
         />
