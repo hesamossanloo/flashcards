@@ -187,35 +187,38 @@ export const SwipeableCard: React.FC<Props> = ({
     ],
   };
 
+  // Animated overlay opacities for swipe feedback
+  const leftOverlayOpacity = position.x.interpolate({
+    inputRange: [-SCREEN_WIDTH * 0.5, 0],
+    outputRange: [0.5, 0],
+    extrapolate: "clamp",
+  });
+  const rightOverlayOpacity = position.x.interpolate({
+    inputRange: [0, SCREEN_WIDTH * 0.5],
+    outputRange: [0, 0.5],
+    extrapolate: "clamp",
+  });
+
   return (
     <View style={styles.container}>
+      {/* Animated swipe overlays */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.swipeOverlay,
+          styles.leftOverlay,
+          { opacity: leftOverlayOpacity },
+        ]}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.swipeOverlay,
+          styles.rightOverlay,
+          { opacity: rightOverlayOpacity },
+        ]}
+      />
       <Animated.View {...panResponder.panHandlers} style={styles.container}>
-        {/* Wrong indicator */}
-        <Animated.View
-          style={[
-            styles.resultIndicator,
-            styles.wrongIndicator,
-            { opacity: wrongOpacity },
-          ]}
-        >
-          <Text style={[styles.resultText, { color: theme.colors.error }]}>
-            Incorrect
-          </Text>
-        </Animated.View>
-
-        {/* Correct indicator */}
-        <Animated.View
-          style={[
-            styles.resultIndicator,
-            styles.correctIndicator,
-            { opacity: correctOpacity },
-          ]}
-        >
-          <Text style={[styles.resultText, { color: theme.colors.success }]}>
-            Correct
-          </Text>
-        </Animated.View>
-
         {/* Card */}
         <TouchableWithoutFeedback onPress={handleCardTap}>
           <View style={styles.cardContainer}>
@@ -309,5 +312,20 @@ const styles = StyleSheet.create({
   resultText: {
     ...theme.typography.body,
     fontWeight: "bold",
+  },
+  swipeOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: "50%",
+    zIndex: 2,
+  },
+  leftOverlay: {
+    left: 0,
+    backgroundColor: "rgba(239, 68, 68, 0.5)", // red
+  },
+  rightOverlay: {
+    right: 0,
+    backgroundColor: "rgba(16, 185, 129, 0.5)", // green
   },
 });
