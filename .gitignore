@@ -147,3 +147,5 @@ yarn-error.log
 .history
 
 *.log
+
+/ios/release-screenshots/
