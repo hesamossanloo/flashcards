@@ -2,7 +2,7 @@
   "expo": {
     "name": "flashcards",
     "slug": "flashcards",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/rams-style-icon.png",
     "userInterfaceStyle": "light",
@@ -14,7 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hesamossanloo.flashcards"
+      "bundleIdentifier": "com.hesamossanloo.flashcards",
+      "buildNumber": "8"
     },
     "android": {
       "adaptiveIcon": {
