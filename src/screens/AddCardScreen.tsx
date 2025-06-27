@@ -174,22 +174,6 @@ export default function AddCardScreen() {
     >
       <ScrollView style={styles.scrollView}>
         <View style={styles.form}>
-          {isFirstCard && (
-            <View style={styles.tipContainer}>
-              <MaterialCommunityIcons
-                name="lightbulb-outline"
-                size={24}
-                color={theme.colors.primary}
-              />
-              <Text
-                style={[styles.tipText, { color: theme.colors.textSecondary }]}
-              >
-                Tip: Start with a foundational concept or key term for your
-                deck!
-              </Text>
-            </View>
-          )}
-
           {!isFirstCard && cardsAdded > 0 && (
             <View
               style={[
