@@ -30,7 +30,7 @@ export default function DeckCard({
   // Gradient color logic
   const getDeckGradient = (): [string, string] => {
     if (deck.totalCards === 0)
-      return [theme.colors.surfaceVariant, theme.colors.surfaceVariant];
+      return [theme.colors.primary, theme.colors.secondary];
     if (progress === 0) return ["#a78bfa", "#7c3aed"]; // purple gradient
     if (progress > 0 && progress < 1) return ["#fb923c", "#f59e42"]; // orange gradient
     if (progress === 1) return [theme.colors.success, "#059669"]; // green gradient
