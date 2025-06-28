@@ -58,5 +58,10 @@
   "private": true,
   "engines": {
     "node": ">=18.0.0"
+  },
+  "expo": {
+    "autolinking": {
+      "exclude": ["react-native-edge-to-edge"]
+    }
   }
 }
