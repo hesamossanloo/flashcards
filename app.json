@@ -23,7 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.hesamossanloo.flashcards",
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "versionCode": 1
     },
     "web": {
