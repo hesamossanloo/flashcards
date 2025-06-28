@@ -23,7 +23,8 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.hesamossanloo.flashcards",
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
