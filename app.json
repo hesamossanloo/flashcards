@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/rams-style-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.hesamossanloo.flashcards",
